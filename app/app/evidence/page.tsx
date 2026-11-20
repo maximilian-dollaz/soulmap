@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { api, HOSTED, personId, useHref } from "@/components/api";
 import { ThemeToggle } from "@/components/Theme";
 import { ArrowLeft, Check, Loader, Shield, Trash } from "@/components/Icons";
+import { Plate } from "@/components/Brand";
 
 type Source = "claude-ai" | "chatgpt" | "claude-code" | "granola" | "otter";
 type Job = { id: string; source: Source | "sync"; file: string; started_at: string; finished_at?: string; state: "queued" | "running" | "done" | "failed"; error?: string };
@@ -165,6 +166,7 @@ export default function EvidencePage() {
         <h1 className="min-w-0 flex-1 truncate text-[var(--text-h2)]">Connections</h1>
         <ThemeToggle />
       </header>
+      <Plate name="ripples" position="50% 60%" className="mt-2" />
 
       <div className="gutter safe-bottom flex flex-col gap-6 pt-4">
         <p className="t-small muted flex items-start gap-2"><Shield size={18} className="mt-0.5 shrink-0" /><span>Your sources are read on this Mac and summarized by the local model. Only numbers and short paraphrases are kept, nothing leaves the machine, and the report never sees anyone else&apos;s words.</span></p>

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { api, useHref } from "@/components/api";
 import { ThemeToggle } from "@/components/Theme";
 import { ArrowLeft, Check, Loader } from "@/components/Icons";
+import { Plate } from "@/components/Brand";
 
 type Checkin = { id: string; at: string; task: string; energy: number; notes?: string; feedback?: string; agent?: string };
 type Adjustment = { id: string; text: string; why?: string; status: "pending" | "yes" | "no"; nuance?: string };
@@ -74,6 +75,7 @@ export default function EnergyPage() {
         <h1 className="min-w-0 flex-1 truncate text-[var(--text-h2)]">Energy Audit</h1>
         <ThemeToggle />
       </header>
+      <Plate name="spark" position="50% 58%" className="mt-2" />
 
       <div className="gutter safe-bottom flex flex-col gap-6 pb-24 pt-4">
         <p className="t-small muted">Log how each task affects your energy. Once a week you get an audit: what gave you energy, what drained you, and small adjustments to try. Nothing changes until you say yes. Only you see this page.</p>
