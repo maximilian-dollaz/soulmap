@@ -3,7 +3,7 @@ import type { SVGProps } from "react";
 /** Inline icon set, 20px, stroke 1.5, currentColor (docs/ui-direction.md §6). */
 type P = SVGProps<SVGSVGElement> & { size?: number };
 const base = (size: number): SVGProps<SVGSVGElement> => ({
-  width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.5, strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": true,
+  width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.75, strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": true,
 });
 
 export const Mic = ({ size = 20, ...p }: P) => (

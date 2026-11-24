@@ -5,6 +5,7 @@ import { api, useHref } from "@/components/api";
 import { ThemeToggle } from "@/components/Theme";
 import { ArrowLeft, ArrowRight, ArrowUp, Check, ChevronDown, Copy, Download, Link, Loader, Mic, Undo } from "@/components/Icons";
 import { detectVoiceSupport } from "@/components/useVoice";
+import { Plate } from "@/components/Brand";
 
 type Correction = { at: string; text: string };
 type Peer = { n: number; link: string | null };
@@ -126,6 +127,7 @@ export default function SoulFilePage() {
         <h1 className="min-w-0 flex-1 truncate text-[var(--text-h2)]">Soul file</h1>
         <ThemeToggle />
       </header>
+      <Plate name="grain" position="50% 50%" className="mt-2" />
 
       <div className="gutter safe-bottom flex flex-col gap-6 pt-4">
         <p className="t-small muted">The file every AI you work with should read first. {updated ? `Last changed ${new Date(updated).toLocaleString()}.` : ""}</p>

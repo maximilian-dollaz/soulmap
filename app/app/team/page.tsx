@@ -5,6 +5,7 @@ import { api, personId, useHref } from "@/components/api";
 import { Markdown } from "@/components/Markdown";
 import { ThemeToggle } from "@/components/Theme";
 import { ArrowLeft, Loader } from "@/components/Icons";
+import { Plate } from "@/components/Brand";
 
 type Card = { id: string; name: string; card: string | null };
 
@@ -28,6 +29,7 @@ export default function TeamPage() {
         <h1 className="min-w-0 flex-1 truncate text-[var(--text-h2)]">Team</h1>
         <ThemeToggle />
       </header>
+      <Plate name="island" position="50% 55%" className="mt-2" />
 
       <div className="gutter safe-bottom flex flex-col gap-4 pt-4">
         <p className="t-small muted">How to work with each other. Each card is the one section a person shares; the rest of their report stays theirs.</p>

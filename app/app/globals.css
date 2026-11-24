@@ -1,30 +1,38 @@
 @import "tailwindcss";
 
-/* ---------- tokens (docs/ui-direction.md §1) ---------- */
+/* ---------- tokens: True Nature (brand/true-nature skill, tokens.css) ----------
+   Night is the default: deep teal night sky, cream type, gold thread.
+   Day is cream paper, umber ink, deep teal. Gold is decoration only on paper, never text. */
 @theme {
-  --color-bg: #0b0b0d;
-  --color-bg-soft: #14141a;
-  --color-bg-raised: #1c1c23;
-  --color-ink: #f6f4ef;
-  --color-muted: #9a9aa3;
-  --color-line: #25252c;
-  --color-accent: #ff6300;
-  --color-accent-ink: #0b0b0d;
-  --color-accent-soft: rgba(255, 99, 0, 0.14);
-  --color-ok: #7fcf9a;
-  --color-warn: #ffb454;
-  --color-danger: #ff6b6b;
+  --color-bg: #05212c;
+  --color-bg-soft: #0a2f3d;
+  --color-bg-raised: #103c4c;
+  --color-ink: #f5e8d6;
+  --color-muted: #a9b5ae;
+  --color-line: #1d4758;
+  --color-accent: #c4a24a;
+  --color-accent-ink: #2c2416;
+  --color-accent-soft: rgba(196, 162, 74, 0.16);
+  --color-cta: #f5e8d6;
+  --color-cta-ink: #033445;
+  --color-gold: #c4a24a;
+  --color-ok: #a9c27e;
+  --color-warn: #e0a458;
+  --color-danger: #f08a70;
+  --glow-top: rgba(15, 74, 95, 0.55);
+  --glow-ember: rgba(196, 162, 74, 0.1);
+  --shadow-card: 0 14px 34px rgba(0, 0, 0, 0.22);
 
   --font-display: var(--font-fraunces), ui-serif, Georgia, serif;
-  --font-body: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-body: var(--font-source), "Source Sans 3", ui-sans-serif, system-ui, sans-serif;
 
   --text-display: 2.125rem; /* 34 */
   --text-h1: 1.75rem; /* 28 */
   --text-h2: 1.375rem; /* 22 */
   --text-body: 1.0625rem; /* 17 */
   --text-small: 0.9375rem; /* 15 */
-  --text-caption: 0.8125rem; /* 13 */
-  --text-label: 0.75rem; /* 12 */
+  --text-caption: 0.875rem; /* 14 */
+  --text-label: 0.8125rem; /* 13 */
 
   --space-1: 4px;
   --space-2: 8px;
@@ -35,64 +43,83 @@
   --space-7: 48px;
 
   --radius-sm: 8px;
-  --radius-md: 14px;
+  --radius-md: 12px;
   --radius-lg: 20px;
   --radius-pill: 999px;
   --container-prose: 32rem;
 
-  --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --dur-fast: 160ms;
   --dur-base: 320ms;
-  --dur-slow: 800ms;
+  --dur-slow: 900ms;
 }
 
-/* light: a daylight reading mode (report, soul file). Opt-in via data-theme; "auto" follows the OS. */
+/* day: cream paper reading mode (report, soul file). Opt-in via data-theme; "auto" follows the OS. */
 :root[data-theme="light"],
 .theme-light {
-  --color-bg: #f6f4ef;
-  --color-bg-soft: #ffffff;
-  --color-bg-raised: #ece9e1;
-  --color-ink: #141418;
-  --color-muted: #5e5e66;
-  --color-line: #d9d5cc;
-  --color-accent: #d94f00;
-  --color-accent-ink: #ffffff;
-  --color-accent-soft: rgba(217, 79, 0, 0.1);
-  --color-ok: #1f7a45;
-  --color-warn: #9a5a00;
-  --color-danger: #b42318;
+  --color-bg: #f5e8d6;
+  --color-bg-soft: #f7f0e3;
+  --color-bg-raised: #eadbc4;
+  --color-ink: #2c2416;
+  --color-muted: #5e5038;
+  --color-line: #d3c4ab;
+  --color-accent: #0a3d50;
+  --color-accent-ink: #f5e8d6;
+  --color-accent-soft: rgba(10, 61, 80, 0.1);
+  --color-cta: #0a3d50;
+  --color-cta-ink: #f5e8d6;
+  --color-gold: #a8862f;
+  --color-ok: #1f4a28;
+  --color-warn: #8f5318;
+  --color-danger: #a3321b;
+  --glow-top: transparent;
+  --glow-ember: transparent;
+  --shadow-card: 0 14px 34px rgba(44, 36, 22, 0.1);
   color-scheme: light;
 }
 @media (prefers-color-scheme: light) {
   :root[data-theme="auto"] {
-    --color-bg: #f6f4ef;
-    --color-bg-soft: #ffffff;
-    --color-bg-raised: #ece9e1;
-    --color-ink: #141418;
-    --color-muted: #5e5e66;
-    --color-line: #d9d5cc;
-    --color-accent: #d94f00;
-    --color-accent-ink: #ffffff;
-    --color-accent-soft: rgba(217, 79, 0, 0.1);
-    --color-ok: #1f7a45;
-    --color-warn: #9a5a00;
-    --color-danger: #b42318;
+    --color-bg: #f5e8d6;
+    --color-bg-soft: #f7f0e3;
+    --color-bg-raised: #eadbc4;
+    --color-ink: #2c2416;
+    --color-muted: #5e5038;
+    --color-line: #d3c4ab;
+    --color-accent: #0a3d50;
+    --color-accent-ink: #f5e8d6;
+    --color-accent-soft: rgba(10, 61, 80, 0.1);
+    --color-cta: #0a3d50;
+    --color-cta-ink: #f5e8d6;
+    --color-gold: #a8862f;
+    --color-ok: #1f4a28;
+    --color-warn: #8f5318;
+    --color-danger: #a3321b;
+    --glow-top: transparent;
+    --glow-ember: transparent;
+    --shadow-card: 0 14px 34px rgba(44, 36, 22, 0.1);
     color-scheme: light;
   }
 }
-/* the map always renders dark, even inside the light report */
+/* the map always renders as night, even inside the day report */
 .theme-dark {
-  --color-bg: #0b0b0d;
-  --color-bg-soft: #14141a;
-  --color-bg-raised: #1c1c23;
-  --color-ink: #f6f4ef;
-  --color-muted: #9a9aa3;
-  --color-line: #25252c;
-  --color-accent: #ff6300;
-  --color-accent-ink: #0b0b0d;
-  --color-accent-soft: rgba(255, 99, 0, 0.14);
-  --color-ok: #7fcf9a;
-  --color-warn: #ffb454;
+  --color-bg: #05212c;
+  --color-bg-soft: #0a2f3d;
+  --color-bg-raised: #103c4c;
+  --color-ink: #f5e8d6;
+  --color-muted: #a9b5ae;
+  --color-line: #1d4758;
+  --color-accent: #c4a24a;
+  --color-accent-ink: #2c2416;
+  --color-accent-soft: rgba(196, 162, 74, 0.16);
+  --color-cta: #f5e8d6;
+  --color-cta-ink: #033445;
+  --color-gold: #c4a24a;
+  --color-ok: #a9c27e;
+  --color-warn: #e0a458;
+  --color-danger: #f08a70;
+  --glow-top: rgba(15, 74, 95, 0.55);
+  --glow-ember: rgba(196, 162, 74, 0.1);
+  --shadow-card: 0 14px 34px rgba(0, 0, 0, 0.22);
   color-scheme: dark;
 }
 
@@ -116,8 +143,13 @@ html, body {
 body {
   min-height: 100dvh;
   position: relative;
+  /* night sky lifting at the top, a low ember of gold at the horizon */
+  background-image:
+    radial-gradient(90% 46% at 50% -8%, var(--glow-top), transparent 70%),
+    radial-gradient(120% 50% at 50% 112%, var(--glow-ember), transparent 62%);
+  background-attachment: fixed;
 }
-/* 3% grain so the dark field is ours, not the default AI dashboard */
+/* 3% grain, like paper and carved stone */
 body::before {
   content: "";
   position: fixed;
@@ -131,24 +163,25 @@ body > * { position: relative; z-index: 1; }
 
 h1, h2, h3, .display {
   font-family: var(--font-display);
-  font-weight: 400;
+  font-weight: 600;
   letter-spacing: -0.02em;
   color: var(--color-ink);
+  text-wrap: balance;
 }
 .display { font-size: var(--text-display); line-height: 1.05; font-variation-settings: "opsz" 144; }
 h1 { font-size: var(--text-h1); line-height: 1.1; font-variation-settings: "opsz" 144; }
 h2 { font-size: var(--text-h2); line-height: 1.2; }
-h3 { font-size: var(--text-body); line-height: 1.3; font-family: var(--font-body); font-weight: 500; letter-spacing: 0; }
+h3 { font-size: var(--text-body); line-height: 1.3; font-family: var(--font-body); font-weight: 600; letter-spacing: 0; }
 
 .t-small { font-size: var(--text-small); line-height: 1.5; }
 .t-caption { font-size: var(--text-caption); line-height: 1.4; font-weight: 500; letter-spacing: 0.01em; }
-.t-label { font-size: var(--text-label); line-height: 1.3; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; }
+.t-label { font-size: var(--text-label); line-height: 1.3; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; }
 .muted { color: var(--color-muted); }
 
 ::selection { background: var(--color-accent); color: var(--color-accent-ink); }
 
 :focus-visible {
-  outline: 2px solid var(--color-accent);
+  outline: 2px solid var(--color-gold);
   outline-offset: 3px;
   border-radius: 4px;
   box-shadow: 0 0 0 2px var(--color-bg) inset;
@@ -164,18 +197,19 @@ input[type="date"], input[type="time"] { -webkit-appearance: none; appearance: n
 /* ---------- components (docs/ui-direction.md §2) ---------- */
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2);
-  min-height: 52px; padding: 0 var(--space-5);
+  min-height: 56px; padding: 0 var(--space-5);
   border-radius: var(--radius-pill);
-  font-size: var(--text-body); font-weight: 500; line-height: 1;
+  font-size: var(--text-body); font-weight: 600; line-height: 1;
   border: 1px solid transparent;
   transition: transform var(--dur-fast) var(--ease-out), filter var(--dur-fast), opacity var(--dur-fast), background-color var(--dur-fast);
   user-select: none;
 }
 .btn:active { transform: scale(0.98); }
 .btn:disabled { opacity: 0.4; cursor: default; transform: none; }
-.btn-primary { background: var(--color-accent); color: var(--color-accent-ink); }
+/* the cream pill on night, deep teal on paper; gold stays a thread, not a fill */
+.btn-primary { background: var(--color-cta); color: var(--color-cta-ink); box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-gold) 55%, transparent), var(--shadow-card); }
 .btn-primary:active { filter: brightness(0.92); }
-.btn-secondary { border-color: var(--color-line); color: var(--color-ink); background: transparent; }
+.btn-secondary { border-color: color-mix(in srgb, var(--color-ink) 45%, transparent); color: var(--color-ink); background: transparent; }
 .btn-secondary:active { background: var(--color-bg-raised); }
 .btn-ghost { color: var(--color-muted); background: transparent; min-height: 44px; padding: 0 10px; font-size: var(--text-small); }
 .btn-ghost:active { background: var(--color-bg-raised); color: var(--color-ink); }
@@ -196,6 +230,7 @@ input[type="date"], input[type="time"] { -webkit-appearance: none; appearance: n
   border: 1px solid var(--color-line);
   border-radius: var(--radius-lg);
   padding: var(--space-4);
+  box-shadow: var(--shadow-card);
 }
 .card-raised { background: var(--color-bg-raised); }
 
@@ -210,7 +245,7 @@ input[type="date"], input[type="time"] { -webkit-appearance: none; appearance: n
   transition: border-color var(--dur-fast);
 }
 .field::placeholder { color: var(--color-muted); }
-.field:focus { border-color: var(--color-accent); }
+.field:focus { border-color: var(--color-gold); box-shadow: 0 0 0 3px var(--color-accent-soft); }
 .field-label { display: block; margin-bottom: var(--space-2); }
 
 .chip {
@@ -218,7 +253,7 @@ input[type="date"], input[type="time"] { -webkit-appearance: none; appearance: n
   min-height: 36px; padding: 0 14px;
   border-radius: var(--radius-pill);
   border: 1px solid var(--color-line);
-  font-size: var(--text-small); font-weight: 500;
+  font-size: var(--text-small); font-weight: 600;
   color: var(--color-ink); background: transparent; white-space: nowrap;
   transition: background-color var(--dur-fast), border-color var(--dur-fast);
 }
@@ -276,14 +311,14 @@ input[type="date"], input[type="time"] { -webkit-appearance: none; appearance: n
 
 /* chat bubbles */
 .bubble { max-width: 88%; padding: 10px 14px; font-size: 1rem; line-height: 1.5; white-space: pre-wrap; position: relative; }
-.bubble-agent { background: var(--color-bg-soft); color: var(--color-ink); border-radius: 20px 20px 20px 6px; }
-.bubble-user { background: var(--color-accent); color: var(--color-accent-ink); border-radius: 20px 20px 6px 20px; }
+.bubble-agent { background: var(--color-bg-soft); color: var(--color-ink); border: 1px solid var(--color-line); border-radius: 20px 20px 20px 6px; }
+.bubble-user { background: var(--color-cta); color: var(--color-cta-ink); border-radius: 20px 20px 6px 20px; }
 .bubble-pending { opacity: 0.6; }
 .bubble .voice-mark { position: absolute; top: 6px; right: 8px; opacity: 0.8; }
 .bubble.has-mark { padding-right: 34px; }
 
 /* sheets */
-.sheet-backdrop { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.55); z-index: 40; animation: fade 160ms var(--ease-out) both; }
+.sheet-backdrop { position: fixed; inset: 0; background: rgba(3, 20, 28, 0.66); backdrop-filter: blur(2px); z-index: 40; animation: fade 160ms var(--ease-out) both; }
 .sheet {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 41;
   max-height: 92dvh; display: flex; flex-direction: column;
@@ -313,23 +348,53 @@ input[type="date"], input[type="time"] { -webkit-appearance: none; appearance: n
 .prose { font-size: var(--text-body); line-height: 1.55; max-width: 60ch; }
 .prose p { margin: 0 0 1em; }
 .prose h2 { margin: var(--space-6) 0 var(--space-3); scroll-margin-top: 120px; }
+.prose h2::before { content: ""; display: block; width: 40px; height: 2px; margin-bottom: var(--space-3); background: var(--color-gold); border-radius: 1px; }
 .prose h3 { margin: var(--space-5) 0 var(--space-2); }
 .prose ul, .prose ol { margin: 0 0 1em; padding-left: 1.25em; }
 .prose li { margin: 0.25em 0; }
-.prose blockquote { margin: 0 0 1em; padding: var(--space-3) var(--space-4); border-left: 2px solid var(--color-warn); color: var(--color-muted); background: var(--color-bg-soft); border-radius: 0 var(--radius-md) var(--radius-md) 0; }
-.prose hr { border: 0; border-top: 1px solid var(--color-line); margin: var(--space-6) 0; }
-.prose strong { font-weight: 500; }
+.prose blockquote { margin: 0 0 1em; padding: var(--space-3) var(--space-4); border-left: 2px solid var(--color-gold); color: var(--color-muted); background: var(--color-bg-soft); border-radius: 0 var(--radius-md) var(--radius-md) 0; }
+/* the gold thread */
+.prose hr { border: 0; height: 1px; background: linear-gradient(to right, transparent, var(--color-gold), transparent); margin: var(--space-6) 0; }
+.prose strong { font-weight: 600; }
 .prose code { font-family: ui-monospace, monospace; font-size: 0.9em; background: var(--color-bg-raised); padding: 1px 5px; border-radius: 4px; }
 
-/* "how to work with me" card: dark even in light mode, 4:5 */
+/* "how to work with me" card: night even in day mode, 4:5. Deep teal sky, a ring of embers at the horizon. */
 .team-card {
   aspect-ratio: 4 / 5; border-radius: var(--radius-lg); padding: var(--space-5);
-  background: radial-gradient(circle at 50% 110%, rgba(255, 99, 0, 0.22), transparent 60%), #0b0b0d;
-  color: #f6f4ef; border: 1px solid #25252c; position: relative; overflow: hidden;
+  background: radial-gradient(circle at 50% 112%, rgba(196, 162, 74, 0.3), transparent 62%), linear-gradient(180deg, #033445 0%, #05212c 70%);
+  color: #f5e8d6; border: 1px solid rgba(196, 162, 74, 0.45); position: relative; overflow: hidden; isolation: isolate;
   display: flex; flex-direction: column;
+  box-shadow: 0 24px 50px rgba(3, 20, 28, 0.35);
 }
-.team-card .glow { position: absolute; left: 50%; bottom: -30%; width: 120%; aspect-ratio: 1; transform: translateX(-50%); border-radius: 50%; background: radial-gradient(circle, rgba(255, 99, 0, 0.35), transparent 60%); pointer-events: none; }
-.team-card h2 { color: #f6f4ef; font-variation-settings: "SOFT" 50; }
+.team-card .glow { position: absolute; left: 50%; bottom: -30%; width: 120%; aspect-ratio: 1; transform: translateX(-50%); border-radius: 50%; background: radial-gradient(circle, rgba(196, 162, 74, 0.32), transparent 60%); pointer-events: none; z-index: -1; }
+.team-card .plate { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 60%; opacity: 0.55; z-index: -2; -webkit-mask-image: linear-gradient(to top, #000 10%, transparent 78%); mask-image: linear-gradient(to top, #000 10%, transparent 78%); }
+.team-card h2 { color: #f5e8d6; }
+.team-card .t-label { color: #c4a24a; }
+.team-card .lens { border: 1px solid rgba(245, 232, 214, 0.3); color: #f5e8d6; background: rgba(3, 52, 69, 0.55); }
+
+/* ---------- brand moments: imagery as moments, not wallpaper ---------- */
+/* a photo band that dissolves into the page ground; headings sit under it, never on it */
+.plate-band { position: relative; width: 100%; flex: none; overflow: hidden; pointer-events: none; }
+.plate-band img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.plate-band::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to bottom, color-mix(in srgb, var(--color-bg) 35%, transparent) 0%, transparent 30%, var(--color-bg) 100%); }
+.plate-band.plate-sm { height: 132px; }
+.plate-band.plate-md { height: 200px; }
+.plate-band.rounded { border-radius: var(--radius-lg); }
+.plate-band.rounded::after { background: linear-gradient(to bottom, transparent 40%, color-mix(in srgb, var(--color-bg) 70%, transparent) 100%); }
+/* day mode: plates read as a print on paper */
+/* night: dim bright plates to about 80 percent so they do not glare; day shows them as printed */
+.plate-band img { filter: brightness(0.82); }
+:root[data-theme="light"] .plate-band img { filter: none; }
+@media (prefers-color-scheme: light) { :root[data-theme="auto"] .plate-band img { filter: none; } }
+/* the Sacred Delta mark (v2: two waves, hairline) and the gold thread above it. Always gold, always centred.
+   Full mark at 56px or taller, compact (one wave) from 24 to 55px. It may draw itself on once per page. */
+.delta-mark { display: flex; width: 100%; flex-direction: column; align-items: center; color: var(--color-gold); }
+.delta-mark .thread { display: block; width: 1px; height: 48px; background: linear-gradient(to bottom, transparent, var(--color-gold)); }
+.delta-mark .mark-draw { stroke-dasharray: 1; stroke-dashoffset: 1; animation: mark-draw 1.8s cubic-bezier(0.4, 0.1, 0.2, 1) 0.2s forwards; }
+.delta-mark .mark-wave { animation-delay: calc(0.65s + var(--w, 0) * 0.2s); }
+@keyframes mark-draw { to { stroke-dashoffset: 0; } }
+@media (prefers-reduced-motion: reduce) { .delta-mark .mark-draw { animation: none; stroke-dashoffset: 0; } }
+.gold-thread { height: 1px; border: 0; background: linear-gradient(to right, transparent, var(--color-gold), transparent); }
 
 /* ---------- motion ---------- */
 @keyframes breathe { 0%, 100% { transform: scale(1); opacity: 0.85; } 50% { transform: scale(1.05); opacity: 1; } }
@@ -371,4 +436,4 @@ input[type="date"], input[type="time"] { -webkit-appearance: none; appearance: n
 .soulmap .map-region { cursor: pointer; }
 
 
-.eyebrow{font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--color-accent);margin:0 0 .5rem}
+.eyebrow { font-size: var(--text-label); font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--color-accent); margin: 0 0 0.5rem; }

@@ -6,6 +6,7 @@ import { BASE } from "@/components/api";
 import { ScalePicker } from "@/components/ScalePicker";
 import { ThemeToggle } from "@/components/Theme";
 import { Check, Loader } from "@/components/Icons";
+import { Plate } from "@/components/Brand";
 
 type Item = { n: number; text: string };
 type Meta = { name?: string; items?: Item[]; open?: { a: string; b: string }; error?: string };
@@ -53,6 +54,7 @@ export default function PeerPage() {
         <h1 className="min-w-0 flex-1 truncate text-[var(--text-h2)]">Three minutes for {first}</h1>
         <ThemeToggle />
       </header>
+      <Plate name="water" position="50% 40%" className="mt-2" />
 
       <div className="gutter safe-bottom flex flex-col gap-6 pt-4 pb-24">
         {!meta ? <p className="muted"><Loader /></p> : meta.error ? (

@@ -6,6 +6,7 @@ import { Markdown, sections } from "@/components/Markdown";
 import { ThemeToggle } from "@/components/Theme";
 import { ArrowLeft, ArrowRight, Copy, Loader, Quote } from "@/components/Icons";
 import { lensName } from "@/components/interview-types";
+import { DeltaMark, Plate, plateSrc } from "@/components/Brand";
 
 type Status = "idle" | "in_chat" | "in_call" | "ended" | "complete" | "reported" | string;
 
@@ -83,6 +84,7 @@ export default function ReportPage() {
         <a className="btn btn-ghost" href={h("/soul-file")}>Soul file <ArrowRight size={16} /></a>
         <ThemeToggle />
       </header>
+      <Plate name="lake" position="50% 62%" className="mt-2" />
 
       {human && (
         <nav ref={scroller} className="sticky top-0 z-10 -mx-0 flex gap-2 overflow-x-auto bg-[var(--color-bg)] px-4 py-3 [scrollbar-width:none]" aria-label="Sections">
@@ -111,11 +113,13 @@ export default function ReportPage() {
           <>
             <section id="card" className="mt-4 scroll-mt-24">
               <div className="team-card mx-auto max-w-sm">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img className="plate" src={plateSrc("embers")} alt="" aria-hidden="true" />
                 <div className="glow orb-breathe" aria-hidden />
-                <p className="t-label" style={{ color: "#9a9aa3" }}>How to work with</p>
+                <p className="t-label">How to work with</p>
                 <h2 className="mt-1 text-[var(--text-h1)]">{name || "me"}</h2>
                 <p className="mt-4 flex-1 text-[1rem] leading-relaxed">{essence}</p>
-                <div className="mt-4 flex flex-wrap gap-1.5">{lenses.map((l) => <span key={l} className="t-caption rounded-full border px-2.5 py-1" style={{ borderColor: "#25252c", color: "#9a9aa3" }}>{lensName(l)}</span>)}</div>
+                <div className="mt-4 flex flex-wrap gap-1.5">{lenses.map((l) => <span key={l} className="lens t-caption rounded-full px-2.5 py-1">{lensName(l)}</span>)}</div>
               </div>
               <div className="mt-3 flex justify-center gap-2">
                 <button type="button" className="btn btn-secondary btn-sm" onClick={copyCard}><Copy size={16} /> {copied ? "Copied" : "Copy text"}</button>
@@ -145,6 +149,7 @@ export default function ReportPage() {
               <a className="btn btn-primary" href={h("/soul-file")}>Get the soul file <ArrowRight /></a>
             </div>
             {err && <p className="t-small mt-2 text-[var(--color-danger)]">{err}</p>}
+            <DeltaMark size={56} thread className="mt-12" />
           </>
         )}
       </div>

@@ -5,6 +5,7 @@ import { api, useHref } from "@/components/api";
 import { ArrowLeft, ArrowRight, Check, Link as LinkIcon, Loader, Mic, Shield, Trash } from "@/components/Icons";
 import { lensName } from "@/components/interview-types";
 import { detectVoiceSupport } from "@/components/useVoice";
+import { Plate } from "@/components/Brand";
 
 const ALWAYS_ON = ["human_design", "gene_keys", "enneagram", "attachment", "bigfive", "chronotype", "values"];
 const PAID = [
@@ -202,6 +203,7 @@ export default function Onboarding() {
       <form className="gutter flex flex-1 flex-col gap-5 pt-6" onSubmit={(e) => { e.preventDefault(); if (valid[step]) next(); }}>
         {step === 0 && (
           <div key="s0" className="fade-in flex flex-col gap-5">
+            <Plate name="roots" size="md" rounded position="50% 45%" />
             <p className="eyebrow">Know Thyself.</p>
             <h1 className="display">{existing ? "Your details." : "Let's start with you."}</h1>
             <label className="block">

@@ -7,34 +7,46 @@
 <meta name="description" content="A 40 minute interview on your Mac that maps how you work, and writes a soul file your AI tools read so they work the way you do. Free and open source.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Source+Sans+3:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<meta name="theme-color" content="#05212c">
 <style>
-  :root { --bg:#0b0b0d; --soft:#14141a; --ink:#f6f4ef; --muted:#9a9aa3; --line:#25252c; --accent:#ff6300; }
-  @media (prefers-color-scheme: light) { :root { --bg:#f6f4ef; --soft:#ffffff; --ink:#141418; --muted:#5e5e66; --line:#d9d5cc; --accent:#d94f00; } }
+  /* True Nature: teal night by default, cream paper by day. Gold is a thread, never body text on paper. */
+  :root { --bg:#05212c; --soft:#0a2f3d; --ink:#f5e8d6; --muted:#a9b5ae; --line:#1d4758; --accent:#c4a24a; --gold:#c4a24a; --cta:#f5e8d6; --cta-ink:#033445; --glow:rgba(196,162,74,.1); }
+  @media (prefers-color-scheme: light) { .plate img { filter:none !important; } :root { --bg:#f5e8d6; --soft:#f7f0e3; --ink:#2c2416; --muted:#5e5038; --line:#d3c4ab; --accent:#0a3d50; --gold:#a8862f; --cta:#0a3d50; --cta-ink:#f5e8d6; --glow:transparent; } }
   * { box-sizing: border-box; }
-  body { margin:0; background:var(--bg); color:var(--ink); font:400 17px/1.55 Inter, system-ui, sans-serif; }
-  main { max-width: 680px; margin: 0 auto; padding: 56px 16px 72px; }
-  .eyebrow { color:var(--accent); font-weight:500; letter-spacing:.04em; margin:0 0 12px; }
-  h1 { font:500 clamp(40px, 9vw, 64px)/1.05 Fraunces, Georgia, serif; margin:0 0 20px; }
-  h2 { font:500 26px/1.2 Fraunces, Georgia, serif; margin:48px 0 12px; }
+  body { margin:0; background:var(--bg) radial-gradient(120% 50% at 50% 112%, var(--glow), transparent 62%) fixed; color:var(--ink); font:400 17px/1.55 "Source Sans 3", system-ui, sans-serif; -webkit-font-smoothing:antialiased; }
+  .plate { position:relative; height:clamp(200px, 38vw, 340px); overflow:hidden; }
+  .plate img { filter:brightness(.82); display:block; width:100%; height:100%; object-fit:cover; object-position:50% 42%; }
+  .plate::after { content:""; position:absolute; inset:0; background:linear-gradient(to bottom, transparent 35%, var(--bg) 100%); }
+  main { max-width: 680px; margin: 0 auto; padding: 24px 16px 72px; }
+  .eyebrow { color:var(--accent); font-size:13px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; margin:0 0 12px; }
+  h1 { font:600 clamp(40px, 9vw, 64px)/1.05 Fraunces, Georgia, serif; letter-spacing:-.02em; margin:0 0 20px; text-wrap:balance; }
+  h2 { font:600 26px/1.2 Fraunces, Georgia, serif; letter-spacing:-.02em; margin:48px 0 12px; }
+  h2::before { content:""; display:block; width:40px; height:2px; margin-bottom:14px; background:var(--gold); border-radius:1px; }
   p, li { color:var(--ink); }
   .muted { color:var(--muted); }
-  .lead { font:400 clamp(20px, 4.5vw, 24px)/1.4 Fraunces, Georgia, serif; margin:0 0 20px; }
+  .lead { font:600 clamp(20px, 4.5vw, 24px)/1.4 Fraunces, Georgia, serif; letter-spacing:-.01em; margin:0 0 20px; text-wrap:pretty; }
   .cmd { display:flex; gap:8px; align-items:stretch; margin:20px 0 8px; }
   .cmd code { flex:1; min-width:0; overflow-x:auto; white-space:nowrap; background:var(--soft); border:1px solid var(--line); border-radius:12px; padding:14px 16px; font:14px/1.4 ui-monospace, Menlo, monospace; }
-  button { background:var(--accent); color:#0b0b0d; border:0; border-radius:12px; padding:0 18px; font:500 15px Inter, sans-serif; cursor:pointer; }
+  button { background:var(--cta); color:var(--cta-ink); border:0; border-radius:999px; min-height:48px; padding:0 22px; font:600 15px "Source Sans 3", sans-serif; cursor:pointer; box-shadow:0 0 0 1px color-mix(in srgb, var(--gold) 55%, transparent); }
+  :focus-visible { outline:2px solid var(--gold); outline-offset:3px; }
   ol, ul { padding-left: 22px; }
   li { margin: 6px 0; }
+  li::marker { color:var(--gold); font-weight:600; }
   .two { display:grid; gap:12px; grid-template-columns: 1fr; }
   @media (min-width: 600px) { .two { grid-template-columns: 1fr 1fr; } }
-  .card { background:var(--soft); border:1px solid var(--line); border-radius:16px; padding:18px; }
-  .card h3 { margin:0 0 6px; font:500 17px Inter, sans-serif; }
+  .card { background:var(--soft); border:1px solid var(--line); border-radius:20px; padding:18px; }
+  .card h3 { margin:0 0 6px; font:600 17px "Source Sans 3", sans-serif; }
   .card p { margin:0; font-size:15px; }
-  a { color:var(--accent); }
-  footer { margin-top:56px; font-size:14px; }
+  a { color:var(--accent); text-underline-offset:3px; }
+  .mark { display:flex; flex-direction:column; align-items:center; color:var(--gold); margin-top:56px; }
+  .mark span { width:1px; height:48px; background:linear-gradient(to bottom, transparent, var(--gold)); }
+  .mark svg { width:auto; overflow:visible; }
+  footer { margin-top:32px; font-size:14px; text-align:center; }
 </style>
 </head>
 <body>
+<div class="plate" aria-hidden="true"><img src="brand/roots.webp" alt=""></div>
 <main>
   <p class="eyebrow">Know Thyself.</p>
   <h1>The Soul Map</h1>
@@ -68,6 +80,7 @@
     <li>Delete everything from one screen, any time.</li>
   </ul>
 
+  <div class="mark" aria-hidden="true"><span></span><svg viewBox="0 0 140 84" height="56" fill="none"><defs><clipPath id="d"><path d="M6 8 H134 L70 80 Z"/></clipPath></defs><g clip-path="url(#d)" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M0 34 q8.75 -6 17.5 0 t17.5 0 t17.5 0 t17.5 0 t17.5 0 t17.5 0 t17.5 0 t17.5 0 t17.5 0"/><path d="M0 52 q8.75 -6 17.5 0 t17.5 0 t17.5 0 t17.5 0 t17.5 0 t17.5 0 t17.5 0 t17.5 0 t17.5 0"/></g><path d="M6 8 H134 L70 80 Z" stroke="currentColor" stroke-width="2.2"/></svg></div>
   <footer class="muted">Free and open source (MIT). Code: <a href="https://github.com/maximilian-dollaz/soulmap">github.com/maximilian-dollaz/soulmap</a>. Needs macOS.</footer>
 </main>
 <script>
