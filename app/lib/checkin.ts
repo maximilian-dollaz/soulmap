@@ -13,7 +13,7 @@ export const CHECKIN_HEADING = "## Energy check-in (every major task)";
 
 export function checkinProtocol(url = appUrl()): string {
   return `${CHECKIN_HEADING}
-A major task is anything with several steps or more than about 15 minutes of work. For each one, ask these two questions as soon as its main piece works, before the wrap-up, final checks or summary, so they get asked even if the session ends early. In a long task, ask at the midpoint milestone instead. Once per task. Never interrupt a thought; skip quick questions and one-line fixes.
+A major task is anything with several steps or more than about 15 minutes of work. For each one, ask these two questions as soon as its main piece works, before the wrap-up, final checks or summary, so they get asked even if the session ends early. In a long task, ask at the midpoint milestone instead. Once per task. Never interrupt a thought; skip quick questions and one-line fixes. Use the two questions word for word. When the whole task is one reply, put them right after the work and before any summary or offer.
 
 1. "How did this task affect your energy? 0 is completely drained, 10 is fully alive."
 2. "What worked, what didn't, and how can I do better?"

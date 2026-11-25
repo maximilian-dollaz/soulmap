@@ -18,6 +18,8 @@ import { profileDir, readState } from "./state";
 
 const ROOT = path.resolve(process.cwd(), "..");
 const DAY = 24 * 3600_000;
+/** Work with AI only: messages and email are personal and stay out of the audit. */
+const AI_SOURCES = ["claude-code.jsonl", "claude-code-mac.jsonl", "claude-ai.jsonl", "chatgpt.jsonl"];
 const TZ = process.env.SOUL_TZ || Intl.DateTimeFormat().resolvedOptions().timeZone;
 
 export type Checkin = { id: string; at: string; task: string; energy: number; notes?: string; feedback?: string; agent?: string };
@@ -86,10 +88,12 @@ export async function signals(id: string, since: Date, until = new Date()): Prom
   const cache = path.join(ROOT, "evidence", "cache", id);
   const names = await fs.readdir(cache).catch(() => [] as string[]);
   // The person's own lines with real timestamps (Claude Code and claude.ai), from the evidence cache the daily sync keeps.
-  const own = (await Promise.all(names.filter((n) => n.endsWith(".jsonl")).map((n) => lines(path.join(cache, n)))))
+  const own = (await Promise.all(names.filter((n) => AI_SOURCES.includes(n)).map((n) => lines(path.join(cache, n)))))
     .flat()
     .map((l) => ({ ...l, d: new Date(l.ts) }))
     .filter((l) => l.d >= since && l.d <= until)
+    // The same session can arrive twice (a server's own copy and the one pushed from the Mac).
+    .filter((l, i, all) => all.findIndex((x) => x.ts === l.ts && x.text === l.text) === i)
     .sort((a, b) => a.d.getTime() - b.d.getTime());
 
   // Sessions: messages less than 45 minutes apart belong together; a lone message counts as 10 minutes.

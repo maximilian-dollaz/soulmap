@@ -21,12 +21,14 @@ export default function ReportPage() {
   const [active, setActive] = useState("card");
   const [copied, setCopied] = useState(false);
   const [hasEvidence, setHasEvidence] = useState<boolean | null>(null);
+  const [newQuestions, setNewQuestions] = useState(0);
+  const [newLenses, setNewLenses] = useState<string[]>([]);
   const scroller = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     api<{ human?: string }>("/api/report").then((j) => setHuman(j.human ?? ""));
     api<{ summary?: unknown }>("/api/evidence").then((j) => setHasEvidence(!!j.summary)).catch(() => setHasEvidence(false));
-    api<{ status?: string; profile?: { name?: string; enabled_lenses?: string[] } }>("/api/live").then((j) => { setStatus(j.status ?? "idle"); setName(j.profile?.name ?? ""); setLenses(j.profile?.enabled_lenses ?? []); }).catch(() => {});
+    api<{ status?: string; profile?: { name?: string; enabled_lenses?: string[] }; interview?: { overall?: { remaining?: number }; lenses?: { lens: string; complete: boolean; from: string }[] } }>("/api/live").then((j) => { setStatus(j.status ?? "idle"); setNewQuestions(j.interview?.overall?.remaining ?? 0); setNewLenses((j.interview?.lenses ?? []).filter((l) => l.from === "items" && !l.complete).map((l) => lensName(l.lens))); setName(j.profile?.name ?? ""); setLenses(j.profile?.enabled_lenses ?? []); }).catch(() => {});
   }, []);
 
   const unlocked = status === "complete" || status === "reported";
@@ -109,6 +111,13 @@ export default function ReportPage() {
 
         {human && (
           <>
+            {newQuestions > 0 && (
+              <section className="card mt-4 flex flex-col gap-3">
+                <h2 className="text-[var(--text-h2)]">{newQuestions} new questions</h2>
+                <p className="t-small muted">{newLenses.length ? `${newLenses.map((n, i) => (i ? n[0].toLowerCase() + n.slice(1) : n)).join(" and ")}. ` : ""}Answer them, then rebuild your report so it and your soul file cover them. About {Math.max(1, Math.round(newQuestions / 3))} minutes.</p>
+                <a className="btn btn-primary self-start" href={h("/")}>Answer them</a>
+              </section>
+            )}
             <section id="card" className="mt-4 scroll-mt-24">
               <div className="team-card mx-auto max-w-sm">
                 <div className="glow orb-breathe" aria-hidden />

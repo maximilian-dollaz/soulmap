@@ -12,7 +12,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { dataDir } from "./state";
 
 export type Engine = "claude" | "local";
-type Settings = { engine?: Engine; anthropic_key?: string; local_model?: string };
+type Settings = { engine?: Engine; anthropic_key?: string; local_model?: string; personal_engine?: Engine };
 
 export const SMALL_MODEL = "claude-haiku-5-5";
 export const REPORT_MODELS: Record<string, string> = { opus: "claude-opus-5-5", sonnet: "claude-sonnet-5-5", haiku: "claude-haiku-5-5" };
@@ -29,7 +29,7 @@ export async function saveAiSettings(patch: Settings) {
   await fs.writeFile(file(), JSON.stringify(next, null, 2), { mode: 0o600 });
 }
 
-export type AiConfig = { engine: Engine | null; key?: string; localModel: string; chosen: boolean };
+export type AiConfig = { engine: Engine | null; key?: string; localModel: string; chosen: boolean; personalEngine: Engine };
 export async function aiConfig(): Promise<AiConfig> {
   const s = await read();
   const key = s.anthropic_key || process.env.ANTHROPIC_API_KEY || undefined;
@@ -37,7 +37,9 @@ export async function aiConfig(): Promise<AiConfig> {
   // SOUL_FORCE_ENGINE=local runs a test copy on the free local model whatever the settings say.
   const forced = process.env.SOUL_FORCE_ENGINE === "local" ? "local" : null;
   const engine: Engine | null = forced ?? (HOSTED ? "claude" : s.engine ?? (key ? "claude" : process.env.SOUL_LOCAL_MODEL ? "local" : null));
-  return { engine: engine === "claude" && !key ? null : engine, key, localModel, chosen: !!s.engine || HOSTED };
+  // Messages and email are scored on this Mac unless the person allowed Claude for them too.
+  const personalEngine: Engine = s.personal_engine === "claude" ? "claude" : "local";
+  return { engine: engine === "claude" && !key ? null : engine, key, localModel, chosen: !!s.engine || HOSTED, personalEngine };
 }
 
 export async function claudeClient(): Promise<Anthropic> {
@@ -97,9 +99,10 @@ export async function complete(o: { system?: string; user: string; maxTokens: nu
 /** Environment for the Python evidence scorer, so it scores with the same engine. */
 export async function aiEnv(): Promise<Record<string, string>> {
   const cfg = await aiConfig();
+  const local = { SOUL_LOCAL_MODEL: cfg.localModel, OLLAMA_URL: `${ollamaUrl()}/api/chat`, SOUL_PERSONAL_ENGINE: cfg.personalEngine };
   return cfg.engine === "claude" && cfg.key
-    ? { SOUL_ENGINE: "claude", ANTHROPIC_API_KEY: cfg.key, SOUL_CLAUDE_MODEL: SMALL_MODEL }
-    : { SOUL_ENGINE: "local", SOUL_LOCAL_MODEL: cfg.localModel, OLLAMA_URL: `${ollamaUrl()}/api/chat` };
+    ? { ...local, SOUL_ENGINE: "claude", ANTHROPIC_API_KEY: cfg.key, SOUL_CLAUDE_MODEL: SMALL_MODEL }
+    : { ...local, SOUL_ENGINE: "local" };
 }
 
 /** Local model status for the settings screen: is Ollama answering, and is the model pulled. */

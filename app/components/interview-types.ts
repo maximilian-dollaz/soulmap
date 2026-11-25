@@ -50,6 +50,8 @@ export const LENS_NAMES: Record<string, string> = {
   bigfive: "Big Five",
   chronotype: "Chronotype",
   values: "Values",
+  drucker: "How you work best",
+  wealth_dynamics: "How you create value",
   kolbe: "Kolbe A",
   working_genius: "Working Genius",
 };

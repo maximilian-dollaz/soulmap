@@ -330,12 +330,146 @@ def import_otter(path: str, person: str, speaker: str | None = None) -> Iterator
         raise ImportError_("no '[h:mm:ss] Name: text' or 'Name  h:mm' lines found; is this an Otter transcript?")
 
 
+# ---------- personal channels: the person's own side only, read in place on this Mac ----------
+# These hold the most private data the Soul Map touches. Only messages the person sent are read; other
+# people's words are never imported. Scoring runs on the local model by default (scorer.PERSONAL).
+
+import sqlite3
+import mailbox
+import email.utils
+from email.header import decode_header, make_header
+
+APPLE_EPOCH = 978307200  # 2001-01-01 in Unix seconds
+
+
+def _ro_sqlite(path: str) -> sqlite3.Connection:
+    if not os.path.exists(path):
+        raise ImportError_(f"file not found: {path}")
+    try:
+        con = sqlite3.connect(f"file:{path}?mode=ro&immutable=1", uri=True)
+        con.execute("select 1 from sqlite_master limit 1").fetchone()
+        return con
+    except sqlite3.DatabaseError as e:
+        if "authorization" in str(e).lower() or "unable to open" in str(e).lower():
+            raise ImportError_("macOS blocked access. Give the Soul Map Full Disk Access in System Settings, Privacy & Security, then sync again.") from None
+        raise ImportError_(f"could not read {os.path.basename(path)} ({e})") from None
+
+
+def _attributed_text(blob: bytes | None) -> str:
+    """Newer macOS keeps message text in attributedBody (an archived NSAttributedString), not in text."""
+    if not blob:
+        return ""
+    i = blob.find(b"NSString")
+    if i < 0:
+        return ""
+    j = i + len(b"NSString") + 5
+    if j >= len(blob):
+        return ""
+    n = blob[j]
+    j += 1
+    if n == 0x81:
+        n = int.from_bytes(blob[j:j + 2], "little"); j += 2
+    elif n == 0x82:
+        n = int.from_bytes(blob[j:j + 3], "little"); j += 3
+    return blob[j:j + n].decode("utf-8", "ignore")
+
+
+def import_imessage(path: str, person: str, speaker: str | None = None) -> Iterator[Turn]:
+    """~/Library/Messages/chat.db: messages with is_from_me = 1, no reactions, no empty or attachment-only rows."""
+    con = _ro_sqlite(path)
+    rows = con.execute(
+        "select date, text, attributedBody from message "
+        "where is_from_me = 1 and coalesce(associated_message_type, 0) = 0 and coalesce(item_type, 0) = 0"
+    )
+    for date, text, body in rows:
+        t = (text or _attributed_text(body) or "").replace("\ufffc", "").strip()
+        if len(t) < 2:
+            continue
+        secs = (date or 0) / 1e9 if (date or 0) > 1e12 else (date or 0)
+        yield Turn(_iso(APPLE_EPOCH + secs) if date else None, t, "imessage")
+
+
+def import_whatsapp(path: str, person: str, speaker: str | None = None) -> Iterator[Turn]:
+    """WhatsApp for Mac's ChatStorage.sqlite: messages with ZISFROMME = 1 that carry text."""
+    con = _ro_sqlite(path)
+    try:
+        rows = con.execute("select ZMESSAGEDATE, ZTEXT from ZWAMESSAGE where ZISFROMME = 1 and ZTEXT is not null")
+    except sqlite3.DatabaseError:
+        raise ImportError_("this does not look like WhatsApp's ChatStorage.sqlite") from None
+    for date, text in rows:
+        t = (text or "").strip()
+        if len(t) >= 2:
+            yield Turn(_iso(APPLE_EPOCH + date) if date else None, t, "whatsapp")
+
+
+_QUOTE_START = re.compile(r"^(on .{0,120} wrote:|-----original message-----|from: .*|sent from my \w+)", re.I)
+
+
+def _plain_body(msg) -> str:
+    part = None
+    if msg.is_multipart():
+        for p in msg.walk():
+            if p.get_content_type() == "text/plain" and not p.get_filename():
+                part = p
+                break
+    elif msg.get_content_type() == "text/plain":
+        part = msg
+    if part is None:
+        return ""
+    try:
+        raw = part.get_payload(decode=True) or b""
+        text = raw.decode(part.get_content_charset() or "utf-8", "ignore")
+    except Exception:
+        return ""
+    keep = []
+    for line in text.splitlines():
+        if _QUOTE_START.match(line.strip()):
+            break  # everything below is the thread being replied to: other people's words
+        if line.lstrip().startswith(">"):
+            continue
+        keep.append(line)
+    return "\n".join(keep).strip()
+
+
+def import_email(path: str, person: str, speaker: str | None = None) -> Iterator[Turn]:
+    """An .mbox (Google Takeout Mail, or Apple Mail's Export Mailbox): only mail the person sent.
+    `speaker` may carry "Name|address"; a message counts as theirs when it is labelled Sent or comes from that address."""
+    if not os.path.exists(path):
+        raise ImportError_(f"file not found: {path}")
+    address = (speaker or "").split("|")[-1].strip().lower() if speaker and "@" in speaker else ""
+    box = mailbox.mbox(path, create=False)
+    seen = 0
+    for msg in box:
+        seen += 1
+        labels = (msg.get("X-Gmail-Labels") or "").lower()
+        sender = email.utils.parseaddr(str(msg.get("From") or ""))[1].lower()
+        if not ("sent" in labels.split(",") or (address and sender == address)):
+            continue
+        body = _plain_body(msg)
+        if len(body) < 10:
+            continue
+        try:
+            when = email.utils.parsedate_to_datetime(msg.get("Date")).astimezone(timezone.utc).isoformat()
+        except Exception:
+            when = None
+        try:
+            subject = str(make_header(decode_header(msg.get("Subject") or "")))
+        except Exception:
+            subject = ""
+        yield Turn(when, (f"Subject: {subject}\n" if subject else "") + body[:4000], "email")
+    if not seen:
+        raise ImportError_(f"{os.path.basename(path)} has no messages; is it an .mbox export?")
+
+
 IMPORTERS = {
     "claude-ai": import_claude_ai,
     "chatgpt": import_chatgpt,
     "claude-code": import_claude_code,
     "granola": import_granola,
     "otter": import_otter,
+    "imessage": import_imessage,
+    "whatsapp": import_whatsapp,
+    "email": import_email,
 }
 
 

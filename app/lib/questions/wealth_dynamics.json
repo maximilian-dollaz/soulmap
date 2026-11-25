@@ -1,0 +1,319 @@
+{
+ "bank": "wealth_dynamics",
+ "version": "0.1",
+ "source": "Original items built on the four energies in Roger Hamilton's Wealth Dynamics: Dynamo (ideas and creating), Blaze (people and connection), Tempo (timing and the senses), Steel (detail and systems). Each answer adds to one energy; the two strongest set the profile. A free self-check, not the official Wealth Dynamics test.",
+ "items": [
+  {
+   "id": "WD1",
+   "say": "When a new project starts, which part do you naturally grab?",
+   "options": [
+    {
+     "key": "a",
+     "text": "Working out the plan, the numbers and the system",
+     "value": "steel"
+    },
+    {
+     "key": "b",
+     "text": "Getting the right people excited and on board",
+     "value": "blaze"
+    },
+    {
+     "key": "c",
+     "text": "Coming up with the idea and the first version",
+     "value": "dynamo"
+    },
+    {
+     "key": "d",
+     "text": "Getting stuck in, sensing what's needed and starting the work",
+     "value": "tempo"
+    }
+   ]
+  },
+  {
+   "id": "WD2",
+   "say": "What do people most often thank you for?",
+   "options": [
+    {
+     "key": "a",
+     "text": "Connecting them with someone, or lifting their spirits",
+     "value": "blaze"
+    },
+    {
+     "key": "b",
+     "text": "Being steady and reliable when things got busy",
+     "value": "tempo"
+    },
+    {
+     "key": "c",
+     "text": "Spotting the detail everyone else missed",
+     "value": "steel"
+    },
+    {
+     "key": "d",
+     "text": "A fresh idea that got them unstuck",
+     "value": "dynamo"
+    }
+   ]
+  },
+  {
+   "id": "WD3",
+   "say": "Which kind of day leaves you feeling most alive?",
+   "options": [
+    {
+     "key": "a",
+     "text": "A day full of conversations and people",
+     "value": "blaze"
+    },
+    {
+     "key": "b",
+     "text": "Starting new things and seeing possibilities",
+     "value": "dynamo"
+    },
+    {
+     "key": "c",
+     "text": "Deep, quiet work on the details",
+     "value": "steel"
+    },
+    {
+     "key": "d",
+     "text": "Steady doing, with a good rhythm and things getting finished",
+     "value": "tempo"
+    }
+   ]
+  },
+  {
+   "id": "WD4",
+   "say": "When something goes wrong, what's your first move?",
+   "options": [
+    {
+     "key": "a",
+     "text": "Find the facts and fix the process",
+     "value": "steel"
+    },
+    {
+     "key": "b",
+     "text": "Stay calm, read the situation, and wait for the right moment",
+     "value": "tempo"
+    },
+    {
+     "key": "c",
+     "text": "Look for a whole new way to do it",
+     "value": "dynamo"
+    },
+    {
+     "key": "d",
+     "text": "Pick up the phone and talk it through",
+     "value": "blaze"
+    }
+   ]
+  },
+  {
+   "id": "WD5",
+   "say": "Where do you create your best value, or make your best money?",
+   "options": [
+    {
+     "key": "a",
+     "text": "Being in the right place at the right time, and acting on it",
+     "value": "tempo"
+    },
+    {
+     "key": "b",
+     "text": "Creating something new: a product, an idea, a piece of work",
+     "value": "dynamo"
+    },
+    {
+     "key": "c",
+     "text": "Through relationships, reputation and being out front",
+     "value": "blaze"
+    },
+    {
+     "key": "d",
+     "text": "Owning and improving systems or assets over time",
+     "value": "steel"
+    }
+   ]
+  },
+  {
+   "id": "WD6",
+   "say": "In a team, which role do you end up in?",
+   "options": [
+    {
+     "key": "a",
+     "text": "The one who makes sure it actually gets done, on time",
+     "value": "tempo"
+    },
+    {
+     "key": "b",
+     "text": "The one who builds the process so it runs without them",
+     "value": "steel"
+    },
+    {
+     "key": "c",
+     "text": "The one with the ideas and the vision",
+     "value": "dynamo"
+    },
+    {
+     "key": "d",
+     "text": "The one who keeps everyone connected and motivated",
+     "value": "blaze"
+    }
+   ]
+  },
+  {
+   "id": "WD7",
+   "say": "What gets in your way most often?",
+   "options": [
+    {
+     "key": "a",
+     "text": "Getting pulled into too many conversations",
+     "value": "blaze"
+    },
+    {
+     "key": "b",
+     "text": "Getting lost in the detail and missing the bigger picture",
+     "value": "steel"
+    },
+    {
+     "key": "c",
+     "text": "Waiting too long because the timing doesn't feel right",
+     "value": "tempo"
+    },
+    {
+     "key": "d",
+     "text": "Starting more than I finish",
+     "value": "dynamo"
+    }
+   ]
+  },
+  {
+   "id": "WD8",
+   "say": "How do you prefer to make a decision?",
+   "options": [
+    {
+     "key": "a",
+     "text": "Look at the data",
+     "value": "steel"
+    },
+    {
+     "key": "b",
+     "text": "Gut feel for what's possible",
+     "value": "dynamo"
+    },
+    {
+     "key": "c",
+     "text": "Feel out the timing and the situation first",
+     "value": "tempo"
+    },
+    {
+     "key": "d",
+     "text": "Talk it through with people I trust",
+     "value": "blaze"
+    }
+   ]
+  },
+  {
+   "id": "WD9",
+   "say": "What do you notice first when you walk into a room?",
+   "options": [
+    {
+     "key": "a",
+     "text": "Who's there and how they're feeling",
+     "value": "blaze"
+    },
+    {
+     "key": "b",
+     "text": "The mood and the pace of the room",
+     "value": "tempo"
+    },
+    {
+     "key": "c",
+     "text": "What could be done differently here",
+     "value": "dynamo"
+    },
+    {
+     "key": "d",
+     "text": "What's out of place or not working",
+     "value": "steel"
+    }
+   ]
+  },
+  {
+   "id": "WD10",
+   "say": "Which compliment lands best with you?",
+   "options": [
+    {
+     "key": "a",
+     "text": "Everyone loves working with you",
+     "value": "blaze"
+    },
+    {
+     "key": "b",
+     "text": "Your work is precise and thorough",
+     "value": "steel"
+    },
+    {
+     "key": "c",
+     "text": "You're the one I can always count on",
+     "value": "tempo"
+    },
+    {
+     "key": "d",
+     "text": "That's brilliant, I'd never have thought of that",
+     "value": "dynamo"
+    }
+   ]
+  },
+  {
+   "id": "WD11",
+   "say": "If you had a free month to build something, you'd most likely...",
+   "options": [
+    {
+     "key": "a",
+     "text": "Set up a system or an investment that keeps paying off",
+     "value": "steel"
+    },
+    {
+     "key": "b",
+     "text": "Invent something that doesn't exist yet",
+     "value": "dynamo"
+    },
+    {
+     "key": "c",
+     "text": "Bring people together around a cause or an event",
+     "value": "blaze"
+    },
+    {
+     "key": "d",
+     "text": "Help out somewhere hands-on and learn by doing",
+     "value": "tempo"
+    }
+   ]
+  },
+  {
+   "id": "WD12",
+   "say": "Which do you trust most?",
+   "options": [
+    {
+     "key": "a",
+     "text": "My numbers",
+     "value": "steel"
+    },
+    {
+     "key": "b",
+     "text": "My people",
+     "value": "blaze"
+    },
+    {
+     "key": "c",
+     "text": "My senses and my timing",
+     "value": "tempo"
+    },
+    {
+     "key": "d",
+     "text": "My imagination",
+     "value": "dynamo"
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,500 @@
+{
+ "bank": "drucker",
+ "version": "0.2",
+ "source": "Original items built on the five self-knowledge questions in Peter Drucker, 'Managing Oneself' (Harvard Business Review, 1999): How do I perform? How do I learn? What are my values? Where do I belong? What should I contribute? Learning is asked from evidence, not self-guessing: three real moments of fast learning and one that didn't stick; the way that shows up most is the result. Values uses Drucker's mirror test and a real clash. Contribution asks what the situation needs and what result in 18 months would matter. D3 and D8 extend the reader/listener question to how a person wants information shaped and delivered, so AI agents can brief them the way they take it in.",
+ "items": [
+  {
+   "id": "DR1",
+   "dimension": "intake",
+   "say": "When someone needs to bring you up to speed on something important, what works best for you?",
+   "options": [
+    {
+     "key": "a",
+     "text": "Send it to me in writing; I take it in best by reading",
+     "value": "reader"
+    },
+    {
+     "key": "b",
+     "text": "Tell me; I take it in best by listening",
+     "value": "listener"
+    },
+    {
+     "key": "c",
+     "text": "Talk me through it, then send it in writing",
+     "value": "both"
+    }
+   ],
+   "question": "perform"
+  },
+  {
+   "id": "DR3",
+   "dimension": "shape",
+   "say": "When information reaches you, what do you want first?",
+   "options": [
+    {
+     "key": "a",
+     "text": "The bottom line, with detail only if I ask",
+     "value": "bottom_line"
+    },
+    {
+     "key": "b",
+     "text": "The whole picture, start to finish",
+     "value": "whole_picture"
+    },
+    {
+     "key": "c",
+     "text": "A picture: a diagram, a table, an example",
+     "value": "visual"
+    }
+   ],
+   "question": "perform"
+  },
+  {
+   "id": "DR8",
+   "dimension": "delivery",
+   "say": "When an AI or a teammate reports back to you, what works best?",
+   "options": [
+    {
+     "key": "a",
+     "text": "A short written message I can read in a minute",
+     "value": "short_text"
+    },
+    {
+     "key": "b",
+     "text": "A voice note or a quick call",
+     "value": "voice"
+    },
+    {
+     "key": "c",
+     "text": "A page I can come back to, with everything in one place",
+     "value": "page"
+    }
+   ],
+   "question": "perform"
+  },
+  {
+   "id": "DR4",
+   "dimension": "with_people",
+   "say": "Where do you do your best work?",
+   "options": [
+    {
+     "key": "a",
+     "text": "Alone, with time to think",
+     "value": "alone"
+    },
+    {
+     "key": "b",
+     "text": "With one close partner",
+     "value": "partner"
+    },
+    {
+     "key": "c",
+     "text": "In a team, bouncing off people",
+     "value": "team"
+    }
+   ],
+   "question": "perform"
+  },
+  {
+   "id": "DR5",
+   "dimension": "role",
+   "say": "Which role brings out your best?",
+   "options": [
+    {
+     "key": "a",
+     "text": "The one who makes the call",
+     "value": "decision_maker"
+    },
+    {
+     "key": "b",
+     "text": "The trusted advisor to the one who makes the call",
+     "value": "advisor"
+    },
+    {
+     "key": "c",
+     "text": "Either, depending on the subject",
+     "value": "either"
+    }
+   ],
+   "question": "perform"
+  },
+  {
+   "id": "DR6",
+   "dimension": "pace",
+   "say": "When do you do your best work?",
+   "options": [
+    {
+     "key": "a",
+     "text": "Under pressure, close to a deadline",
+     "value": "pressure"
+    },
+    {
+     "key": "b",
+     "text": "With structure and plenty of lead time",
+     "value": "structure"
+    },
+    {
+     "key": "c",
+     "text": "A steady rhythm, the same every day",
+     "value": "rhythm"
+    }
+   ],
+   "question": "perform"
+  },
+  {
+   "id": "DRL1",
+   "dimension": "learning_work",
+   "question": "learn",
+   "say": "Think of a real time you picked something up fast at work. Picture the moment it clicked. How did it reach you?",
+   "options": [
+    {
+     "key": "a",
+     "text": "I read about it",
+     "value": "reading"
+    },
+    {
+     "key": "b",
+     "text": "Someone explained it to me out loud",
+     "value": "listening"
+    },
+    {
+     "key": "c",
+     "text": "I watched someone do it",
+     "value": "watching"
+    },
+    {
+     "key": "d",
+     "text": "I just did it, tried and adjusted",
+     "value": "doing"
+    },
+    {
+     "key": "e",
+     "text": "I wrote it out in my own words",
+     "value": "writing"
+    },
+    {
+     "key": "f",
+     "text": "I talked it through or taught it to someone",
+     "value": "talking"
+    }
+   ],
+   "group": "learning"
+  },
+  {
+   "id": "DRL2",
+   "dimension": "learning_life",
+   "question": "learn",
+   "say": "Now a time outside work you learned something quickly: a sport, an instrument, a language, a tool. How did that one reach you?",
+   "options": [
+    {
+     "key": "a",
+     "text": "I read about it",
+     "value": "reading"
+    },
+    {
+     "key": "b",
+     "text": "Someone explained it to me out loud",
+     "value": "listening"
+    },
+    {
+     "key": "c",
+     "text": "I watched someone do it",
+     "value": "watching"
+    },
+    {
+     "key": "d",
+     "text": "I just did it, tried and adjusted",
+     "value": "doing"
+    },
+    {
+     "key": "e",
+     "text": "I wrote it out in my own words",
+     "value": "writing"
+    },
+    {
+     "key": "f",
+     "text": "I talked it through or taught it to someone",
+     "value": "talking"
+    }
+   ],
+   "group": "learning"
+  },
+  {
+   "id": "DRL3",
+   "dimension": "learning_recent",
+   "question": "learn",
+   "say": "One more: something you understood quickly in the past year. How did it get in?",
+   "options": [
+    {
+     "key": "a",
+     "text": "I read about it",
+     "value": "reading"
+    },
+    {
+     "key": "b",
+     "text": "Someone explained it to me out loud",
+     "value": "listening"
+    },
+    {
+     "key": "c",
+     "text": "I watched someone do it",
+     "value": "watching"
+    },
+    {
+     "key": "d",
+     "text": "I just did it, tried and adjusted",
+     "value": "doing"
+    },
+    {
+     "key": "e",
+     "text": "I wrote it out in my own words",
+     "value": "writing"
+    },
+    {
+     "key": "f",
+     "text": "I talked it through or taught it to someone",
+     "value": "talking"
+    }
+   ],
+   "group": "learning"
+  },
+  {
+   "id": "DRL4",
+   "dimension": "learning_slow",
+   "question": "learn",
+   "say": "And the opposite: something you tried to learn that just wouldn't stick. How was it coming to you?",
+   "options": [
+    {
+     "key": "a",
+     "text": "I read about it",
+     "value": "reading"
+    },
+    {
+     "key": "b",
+     "text": "Someone explained it to me out loud",
+     "value": "listening"
+    },
+    {
+     "key": "c",
+     "text": "I watched someone do it",
+     "value": "watching"
+    },
+    {
+     "key": "d",
+     "text": "I just did it, tried and adjusted",
+     "value": "doing"
+    },
+    {
+     "key": "e",
+     "text": "I wrote it out in my own words",
+     "value": "writing"
+    },
+    {
+     "key": "f",
+     "text": "I talked it through or taught it to someone",
+     "value": "talking"
+    }
+   ]
+  },
+  {
+   "id": "DRV1",
+   "dimension": "mirror",
+   "question": "values",
+   "say": "At the end of a working day, what do you most need to see in the mirror?",
+   "options": [
+    {
+     "key": "a",
+     "text": "That I was honest, even when it cost me",
+     "value": "integrity"
+    },
+    {
+     "key": "b",
+     "text": "That I made a real difference to someone",
+     "value": "service"
+    },
+    {
+     "key": "c",
+     "text": "That the work was excellent, not just done",
+     "value": "excellence"
+    },
+    {
+     "key": "d",
+     "text": "That I stayed free and true to my own way",
+     "value": "freedom"
+    },
+    {
+     "key": "e",
+     "text": "That I grew, and pushed past my edge",
+     "value": "growth"
+    }
+   ]
+  },
+  {
+   "id": "DRV2",
+   "dimension": "value_clash",
+   "question": "values",
+   "say": "Think of a time work asked something of you that felt wrong, or a place you left or wanted to leave. What was at stake?",
+   "options": [
+    {
+     "key": "a",
+     "text": "Honesty: cutting corners or bending the truth",
+     "value": "integrity"
+    },
+    {
+     "key": "b",
+     "text": "How people were treated",
+     "value": "people"
+    },
+    {
+     "key": "c",
+     "text": "Quality: being asked to ship work below my standard",
+     "value": "excellence"
+    },
+    {
+     "key": "d",
+     "text": "Short-term money over the long game",
+     "value": "long_term"
+    },
+    {
+     "key": "e",
+     "text": "Control: not being trusted to do it my way",
+     "value": "autonomy"
+    },
+    {
+     "key": "f",
+     "text": "Nothing like that has happened to me",
+     "value": "none"
+    }
+   ]
+  },
+  {
+   "id": "DR7",
+   "dimension": "setting",
+   "say": "Where do you thrive?",
+   "options": [
+    {
+     "key": "a",
+     "text": "A small team where everyone does a bit of everything",
+     "value": "small"
+    },
+    {
+     "key": "b",
+     "text": "A larger organization with clear roles",
+     "value": "large"
+    },
+    {
+     "key": "c",
+     "text": "On my own, with people I bring in when needed",
+     "value": "solo"
+    }
+   ],
+   "question": "belong"
+  },
+  {
+   "id": "DRB1",
+   "dimension": "best_fit",
+   "question": "belong",
+   "say": "Think of the place or project where you did your best work so far. What made it fit?",
+   "options": [
+    {
+     "key": "a",
+     "text": "The people I worked with",
+     "value": "people"
+    },
+    {
+     "key": "b",
+     "text": "A mission I believed in",
+     "value": "mission"
+    },
+    {
+     "key": "c",
+     "text": "Freedom to do it my way",
+     "value": "freedom"
+    },
+    {
+     "key": "d",
+     "text": "A hard challenge at a fast pace",
+     "value": "challenge"
+    },
+    {
+     "key": "e",
+     "text": "Clear goals and a clear structure",
+     "value": "structure"
+    }
+   ]
+  },
+  {
+   "id": "DRC1",
+   "dimension": "needed",
+   "question": "contribute",
+   "say": "Look at your work as it is right now, not what you'd like to do. What does it need most from you?",
+   "options": [
+    {
+     "key": "a",
+     "text": "A new idea or a clear direction",
+     "value": "direction"
+    },
+    {
+     "key": "b",
+     "text": "The right people brought in and on board",
+     "value": "people"
+    },
+    {
+     "key": "c",
+     "text": "The work itself done well and on time",
+     "value": "execution"
+    },
+    {
+     "key": "d",
+     "text": "A system so it runs without me",
+     "value": "systems"
+    },
+    {
+     "key": "e",
+     "text": "Money or deals brought in",
+     "value": "revenue"
+    }
+   ]
+  },
+  {
+   "id": "DRC2",
+   "dimension": "result",
+   "question": "contribute",
+   "say": "Eighteen months from now, which result would make you say: that mattered?",
+   "options": [
+    {
+     "key": "a",
+     "text": "Something I built is out in the world and people use it",
+     "value": "built"
+    },
+    {
+     "key": "b",
+     "text": "A team or community that runs well and keeps going",
+     "value": "team"
+    },
+    {
+     "key": "c",
+     "text": "A clear number reached: income, clients, growth",
+     "value": "number"
+    },
+    {
+     "key": "d",
+     "text": "Specific people are better off because of me",
+     "value": "people"
+    },
+    {
+     "key": "e",
+     "text": "I've become truly excellent at my craft",
+     "value": "mastery"
+    }
+   ]
+  }
+ ],
+ "questions": {
+  "perform": "How do I perform?",
+  "learn": "How do I learn?",
+  "values": "What are my values?",
+  "belong": "Where do I belong?",
+  "contribute": "What should I contribute?"
+ }
+}

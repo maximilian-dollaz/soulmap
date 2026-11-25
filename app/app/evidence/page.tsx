@@ -5,7 +5,7 @@ import { api, HOSTED, personId, useHref } from "@/components/api";
 import { ThemeToggle } from "@/components/Theme";
 import { ArrowLeft, Check, Loader, Shield, Trash } from "@/components/Icons";
 
-type Source = "claude-ai" | "chatgpt" | "claude-code" | "granola" | "otter";
+type Source = "claude-ai" | "chatgpt" | "claude-code" | "granola" | "otter" | "imessage" | "whatsapp" | "email";
 type Job = { id: string; source: Source | "sync"; file: string; started_at: string; finished_at?: string; state: "queued" | "running" | "done" | "failed"; error?: string };
 type Summary = {
   generated_at: string;
@@ -14,8 +14,8 @@ type Summary = {
   observations: Record<string, string[]>;
   caveats: string[];
 };
-type ConnectorId = "claude_code" | "granola" | "claude_ai" | "otter";
-type Connector = { id: ConnectorId; name: string; available: boolean; mode: "auto" | "one_click" | "claude_code" | "missing" | "connect"; detail: string; enabled: boolean; last_sync?: string; items?: number; connected?: boolean; account?: string };
+type ConnectorId = "claude_code" | "granola" | "claude_ai" | "otter" | "imessage" | "whatsapp" | "email";
+type Connector = { id: ConnectorId; name: string; available: boolean; mode: "auto" | "one_click" | "claude_code" | "missing" | "connect" | "permission"; personal?: boolean; detail: string; enabled: boolean; last_sync?: string; items?: number; connected?: boolean; account?: string };
 
 /** One card per source. `transcript` sources ask for the person's speaker label; `manual` ones (Mac-only) show steps instead of a picker. */
 const SOURCES: { key: Source; name: string; how: string; accept: string; transcript?: boolean; manual?: string[] }[] = [
@@ -36,6 +36,7 @@ const STATE_LABEL: Record<Job["state"], string> = { queued: "queued", running: "
 /** The status chip per connector: what it does on its own, and what the person still has to do. */
 function chipFor(c: Connector): { label: string; cls: string } {
   if (c.connected) return { label: "Connected", cls: "ok" };
+  if (c.mode === "permission") return { label: "Needs your permission", cls: "active" };
   if (c.mode === "connect") return { label: "Not connected", cls: "muted" };
   if (c.mode === "auto" && c.available) return { label: "Connected automatically", cls: "ok" };
   if (c.mode === "claude_code") return { label: c.available ? "Ready from Claude Code" : "Syncs through Claude Code", cls: c.available ? "ok" : "muted" };
@@ -200,19 +201,23 @@ export default function EvidencePage() {
                       {(c.id === "otter" || c.id === "granola") && !c.connected && (
                         <a className="btn btn-primary btn-sm" style={{ minHeight: 36 }} href={h(`/api/connectors/connect?id=${c.id}`)}>Connect</a>
                       )}
+                      {c.mode === "permission" && (
+                        <a className="btn btn-primary btn-sm" style={{ minHeight: 36 }} href="x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles">Open System Settings</a>
+                      )}
                       {c.available && c.enabled && (
                         <button type="button" className="btn btn-ghost" style={{ minHeight: 36 }} disabled={!!syncing || active} onClick={() => sync(c.id)}>
                           {syncing === c.id ? <><Loader size={14} /> Syncing</> : "Sync now"}
                         </button>
                       )}
                     </div>
-                    <p className="t-small muted">{c.detail}</p>
+                    <p className="t-small muted">{c.personal && !c.enabled ? "Off until you turn it on. " : ""}{c.detail}</p>
                     {c.connected && <button type="button" className="t-caption muted self-start underline" onClick={() => disconnect(c)}>Disconnect</button>}
                   </li>
                 );
               })}
             </ul>
           )}
+          {!HOSTED && connectors?.some((c) => c.personal) && <PersonalNote />}
         </section>
 
         <section>
@@ -315,5 +320,34 @@ export default function EvidencePage() {
         )}
       </div>
     </main>
+  );
+}
+
+type AiState = { engine: string | null; personal_engine?: "claude" | "local"; managed?: boolean; local: { running: boolean; installed: boolean }; install: { state: string; step?: string; percent?: number } };
+
+/** Messages and email: who reads them. Default is this Mac only, on the free local model. */
+function PersonalNote() {
+  const [ai, setAi] = useState<AiState | null>(null);
+  const [busy, setBusy] = useState(false);
+  const load = useCallback(() => api<AiState>("/api/settings/ai").then((j) => { if (j._status === 200) setAi(j); }).catch(() => {}), []);
+  useEffect(() => { load(); }, [load]);
+  useEffect(() => { if (ai?.install.state !== "running") return; const t = setInterval(load, 4000); return () => clearInterval(t); }, [ai?.install.state, load]);
+  if (!ai || ai.managed) return null;
+  const set = async (json: Record<string, unknown>) => { setBusy(true); await api("/api/settings/ai", { method: "POST", json }).catch(() => {}); setBusy(false); load(); };
+  const local = ai.personal_engine !== "claude";
+  return (
+    <div className="card mt-3 flex flex-col gap-3">
+      <h3 className="flex items-center gap-2"><Shield size={18} /> Messages and email</h3>
+      <p className="t-small">{local ? "Only what you sent is read, and it is read on this Mac by a free local model. Nothing from your messages or email leaves this Mac; only the scores reach your report." : "Only what you sent is read. Claude scores it with your key; only the scores reach your report."}</p>
+      {local && !ai.local.installed && (ai.install.state === "running"
+        ? <p className="t-small muted"><Loader size={14} /> Downloading the local model{ai.install.percent ? `, ${ai.install.percent}%` : ""}. About 5 GB, once.</p>
+        : <p className="t-small muted">The local model is not on this Mac yet, so messages and email are kept but not scored. It is a one-time download of about 5 GB.</p>)}
+      <div className="flex flex-wrap gap-2">
+        {local && !ai.local.installed && ai.install.state !== "running" && <button type="button" className="btn btn-primary btn-sm" disabled={busy} onClick={() => set({ install_local: true })}>Download the local model</button>}
+        {ai.engine === "claude" && (local
+          ? <button type="button" className="btn btn-ghost btn-sm" disabled={busy} onClick={() => set({ personal_engine: "claude" })}>Let Claude score them instead</button>
+          : <button type="button" className="btn btn-secondary btn-sm" disabled={busy} onClick={() => set({ personal_engine: "local" })}>Keep them on this Mac only</button>)}
+      </div>
+    </div>
   );
 }

@@ -17,7 +17,7 @@ cd "$SRC"
   cp -p "$f" "$DST/$f"
 done
 # Nothing personal may leave: stop if a known private marker slipped in.
-if grep -rIl -E "maxmuzones|mkmuzones|tail0f1ba6|sk-ant-a[a-z0-9]|Amanda|True Nature" "$DST" --exclude-dir=.git --exclude-dir=node_modules --exclude=export-public.sh; then
+if grep -rIl -E "maxmuzones|mkmuzones|tail0f1ba6|sk-ant-a[a-z0-9]|Amanda|True Nature|[Ss]chlender|recall-server" "$DST" --exclude-dir=.git --exclude-dir=node_modules --exclude=export-public.sh; then
   echo "export-public: private markers found in the files above; fix them before publishing." >&2; exit 1
 fi
 echo "exported to $DST"

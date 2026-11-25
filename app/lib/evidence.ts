@@ -17,7 +17,7 @@ const EVIDENCE_DIR = path.join(ROOT, "evidence");
 const UV = process.env.UV_BIN ?? `${process.env.HOME}/.local/bin/uv`;
 const run = promisify(execFile);
 
-export const SOURCES = ["claude-ai", "chatgpt", "claude-code", "granola", "otter"] as const;
+export const SOURCES = ["claude-ai", "chatgpt", "claude-code", "granola", "otter", "imessage", "whatsapp", "email"] as const;
 export type Source = (typeof SOURCES)[number];
 export type JobState = "queued" | "running" | "done" | "failed";
 export type Job = { id: string; source: Source | "sync"; file: string; started_at: string; finished_at?: string; state: JobState; error?: string; pid?: number };

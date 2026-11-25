@@ -20,6 +20,10 @@ import { readState, updateState } from "./state";
  *   claude_ai    the export zip Anthropic emails, once it lands in ~/Downloads; taken in once, by hash
  *   otter        one click: sign in to Otter's MCP server; each sync fetches new meetings into
  *                evidence/cache/<id>/otter-meetings/ (the /soul-otter-sync skill can still drop files there)
+ *   imessage     ~/Library/Messages/chat.db, read in place; needs Full Disk Access          } personal: off until
+ *   whatsapp     WhatsApp for Mac's ChatStorage.sqlite, read in place                        } the person turns them
+ *   email        an .mbox in ~/Downloads (Google Takeout Mail, or Apple Mail's Export Mailbox) } on; only what they sent
+ * Personal sources are scored on the local model unless the person allows Claude for them (lib/ai.ts).
  */
 const run = promisify(execFile);
 /** The hosted demo has no Mac to connect to; connectors are off there. */
@@ -28,12 +32,15 @@ const HOME = os.homedir();
 const ROOT = path.resolve(process.cwd(), "..");
 const EVIDENCE_DIR = path.join(ROOT, "evidence");
 
-export const CONNECTOR_IDS = ["claude_code", "granola", "claude_ai", "otter"] as const;
+export const CONNECTOR_IDS = ["claude_code", "granola", "claude_ai", "otter", "imessage", "whatsapp", "email"] as const;
+/** Messages and email: off until the person turns them on. */
+export const PERSONAL_CONNECTORS: readonly ConnectorId[] = ["imessage", "whatsapp", "email"];
+export const isEnabled = (cid: ConnectorId, pref?: ConnectorPref) => pref?.enabled ?? !PERSONAL_CONNECTORS.includes(cid);
 export type ConnectorId = (typeof CONNECTOR_IDS)[number];
 export const isConnectorId = (s: unknown): s is ConnectorId => typeof s === "string" && (CONNECTOR_IDS as readonly string[]).includes(s);
 
 /** How the UI should talk about the connector's state. */
-export type ConnectorMode = "auto" | "one_click" | "claude_code" | "missing" | "connect";
+export type ConnectorMode = "auto" | "one_click" | "claude_code" | "missing" | "connect" | "permission";
 
 export type ConnectorStatus = {
   id: ConnectorId;
@@ -48,6 +55,8 @@ export type ConnectorStatus = {
   /** One-click OAuth connectors: signed in, and as whom. */
   connected?: boolean;
   account?: string;
+  /** Messages and email: off by default, scored on this Mac unless allowed otherwise. */
+  personal?: boolean;
 };
 
 /** What a sync of this connector would import; null when there is nothing. */
@@ -156,8 +165,62 @@ async function probeOtter(id: string): Promise<Probe> {
   return { status: { id: "otter", name, available: false, mode: "connect", connected: false, detail: "Tap Connect and sign in to Otter. Nothing else to set up." } };
 }
 
+/** Can this process read the file? macOS answers EPERM until the app has Full Disk Access. */
+async function readable(file: string): Promise<"ok" | "missing" | "blocked"> {
+  try { const fh = await fs.open(file, "r"); await fh.read(Buffer.alloc(16), 0, 16, 0); await fh.close(); return "ok"; }
+  catch (e) { const code = (e as NodeJS.ErrnoException).code; return code === "ENOENT" ? "missing" : "blocked"; }
+}
+const FDA = `macOS needs your permission first: open System Settings, Privacy & Security, Full Disk Access, tap +, press Command-Shift-G, paste ${process.execPath} and turn it on. Then tap Sync now.`;
+
+async function probeImessage(): Promise<Probe> {
+  const name = "iMessage";
+  const file = path.join(HOME, "Library", "Messages", "chat.db");
+  const r = await readable(file);
+  if (r === "missing") return { status: { id: "imessage", name, available: false, mode: "missing", detail: "Messages has no history on this Mac.", personal: true } };
+  if (r === "blocked") return { status: { id: "imessage", name, available: false, mode: "permission", detail: FDA, personal: true } };
+  return { status: { id: "imessage", name, available: true, mode: "auto", detail: "Reads only the messages you sent, on this Mac. Nobody else's words are kept.", personal: true }, step: { source: "imessage", file } };
+}
+
+async function probeWhatsapp(): Promise<Probe> {
+  const name = "WhatsApp";
+  const file = path.join(HOME, "Library", "Group Containers", "group.net.whatsapp.WhatsApp.shared", "ChatStorage.sqlite");
+  const r = await readable(file);
+  if (r === "missing") return { status: { id: "whatsapp", name, available: false, mode: "missing", detail: "Install WhatsApp for Mac and sign in; its history on this Mac is what gets read.", personal: true } };
+  if (r === "blocked") return { status: { id: "whatsapp", name, available: false, mode: "permission", detail: FDA, personal: true } };
+  return { status: { id: "whatsapp", name, available: true, mode: "auto", detail: "Reads only the messages you sent, from WhatsApp for Mac, on this Mac. Nobody else's words are kept.", personal: true }, step: { source: "whatsapp", file } };
+}
+
+/** The newest .mbox in Downloads (or inside a folder there, as Google Takeout unpacks), taken in once. */
+async function probeEmail(pref: ConnectorPref | undefined): Promise<Probe> {
+  const name = "Email";
+  const dl = path.join(HOME, "Downloads");
+  const found: { file: string; mtime: number; size: number }[] = [];
+  const walk = async (d: string, depth: number) => {
+    for (const e of await fs.readdir(d, { withFileTypes: true }).catch(() => [])) {
+      const f = path.join(d, e.name);
+      if (e.isDirectory() && depth < 4) await walk(f, depth + 1);
+      else if (e.isFile() && e.name.toLowerCase().endsWith(".mbox")) { const st = await fs.stat(f).catch(() => null); if (st?.size) found.push({ file: f, mtime: st.mtimeMs, size: st.size }); }
+      // Apple Mail exports a folder named <mailbox>.mbox holding a file called mbox.
+      else if (e.isFile() && e.name === "mbox" && d.toLowerCase().endsWith(".mbox")) { const st = await fs.stat(f).catch(() => null); if (st?.size) found.push({ file: f, mtime: st.mtimeMs, size: st.size }); }
+    }
+  };
+  await walk(dl, 1);
+  found.sort((a, b) => b.mtime - a.mtime);
+  const how = "Export your mail: Google Takeout (takeout.google.com, choose only Mail) or in Apple Mail, Mailbox, Export Mailbox on your Sent folder. Put the .mbox in Downloads.";
+  const ingested = new Set(pref?.ingested ?? []);
+  for (const f of found) {
+    const mark = `${path.basename(f.file)}:${f.size}:${Math.round(f.mtime)}`;
+    if (ingested.has(mark)) continue;
+    return { status: { id: "email", name, available: true, mode: "auto", detail: `${path.basename(path.dirname(f.file)) === "Downloads" ? path.basename(f.file) : path.basename(path.dirname(f.file))} is in Downloads. Only mail you sent is read, on this Mac; replies you quoted are cut.`, items: 1, personal: true }, step: { source: "email", file: f.file }, mark };
+  }
+  return { status: { id: "email", name, available: false, mode: "one_click", detail: found.length ? `Your mail export is already in. ${how}` : how, personal: true } };
+}
+
 async function probe(cid: ConnectorId, id: string, pref: ConnectorPref | undefined): Promise<Probe> {
   switch (cid) {
+    case "imessage": return probeImessage();
+    case "whatsapp": return probeWhatsapp();
+    case "email": return probeEmail(pref);
     case "claude_code": return probeClaudeCode();
     case "granola": return probeGranola(id);
     case "claude_ai": return probeClaudeAi(pref);
@@ -171,7 +234,7 @@ export async function connectorStatuses(id: string): Promise<ConnectorStatus[]> 
   return Promise.all(CONNECTOR_IDS.map(async (cid) => {
     const pref = prefs[cid];
     const p = await probe(cid, id, pref);
-    return { ...p.status, enabled: pref?.enabled ?? true, last_sync: pref?.last_sync };
+    return { ...p.status, enabled: isEnabled(cid, pref), last_sync: pref?.last_sync };
   }));
 }
 
@@ -196,6 +259,7 @@ export async function syncConnectors(id: string, ids: ConnectorId[] | undefined,
   const state = await readState(id);
   const prefs = state.profile.connectors ?? {};
   const speaker = state.profile.name;
+  const mailSpeaker = `${state.profile.name ?? ""}|${state.profile.email ?? ""}`;
   const wanted = ids?.length ? ids : [...CONNECTOR_IDS];
   const steps: ImportStep[] = [];
   const synced: ConnectorId[] = [];
@@ -204,10 +268,10 @@ export async function syncConnectors(id: string, ids: ConnectorId[] | undefined,
   const skipped: SyncResult["skipped"] = [];
   for (const cid of wanted) {
     const pref = prefs[cid];
-    if (!ids?.length && pref?.enabled === false) { skipped.push({ id: cid, why: "off" }); continue; }
+    if (!ids?.length && !isEnabled(cid, pref)) { skipped.push({ id: cid, why: "off" }); continue; }
     const p = await probe(cid, id, pref);
     if (!p.step) { skipped.push({ id: cid, why: p.status.detail }); continue; }
-    steps.push({ ...p.step, speaker });
+    steps.push({ ...p.step, speaker: cid === "email" ? mailSpeaker : speaker });
     synced.push(cid);
     if (p.mark) marks[cid] = p.mark;
     if (p.remote) remotes.add(p.remote);

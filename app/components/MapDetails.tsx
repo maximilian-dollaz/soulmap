@@ -2,6 +2,28 @@
 
 import { BIG5, ENNEA_NAMES, GENIUS_SHORT, VALUE_KEYS, nice, type Live, type MapRegion } from "./SoulMap";
 
+/** Drucker's five questions, each with the choices that answer it. Learning is the way most of the remembered moments came in. */
+const DRUCKER_ROWS: [string, [string, string][]][] = [
+  ["How you perform", [["intake", "Taking things in"], ["shape", "First you want"], ["delivery", "Reports back"], ["with_people", "Best work"], ["role", "Role"], ["pace", "Pace"]]],
+  ["How you learn", [["learning", "Fastest way in"], ["learning_slow", "Doesn't stick"]]],
+  ["What you value", [["mirror", "In the mirror"], ["value_clash", "Line not to cross"]]],
+  ["Where you belong", [["setting", "Setting"], ["best_fit", "Best fit so far"]]],
+  ["What you contribute", [["needed", "Needed now"], ["result", "In 18 months"]]],
+];
+
+/** Wealth Dynamics in plain words: what each energy and profile means in a working day. */
+const WD_ENERGY: Record<string, string> = { dynamo: "Ideas, creating", blaze: "People, connecting", tempo: "Timing, doing", steel: "Detail, systems" };
+const WD_PLAIN: Record<string, string> = {
+  Creator: "You make value by starting new things. Hand the running of them to others.",
+  Star: "You make value by being the face and voice of an idea. Put yourself out front.",
+  Supporter: "You make value through people: leading, connecting, lifting a team.",
+  "Deal Maker": "You make value by bringing the right people together at the right moment.",
+  Trader: "You make value through timing and a steady hand: acting when the moment is right.",
+  Accumulator: "You make value by building steadily and reliably, and keeping what you build.",
+  Lord: "You make value by controlling the detail: systems, numbers and cash flow.",
+  Mechanic: "You make value by making things work better and turning them into systems.",
+};
+
 /** Full-width cards under the map for everything the phone-size SVG hides. Each card carries id=`map-<region>`. */
 export function MapDetails({ live, regions }: { live: Live; regions?: MapRegion[] }) {
   const enabled = new Set(live.enabled ?? ["human_design", "gene_keys", "enneagram", "attachment", "bigfive", "chronotype", "values"]);
@@ -100,6 +122,42 @@ export function MapDetails({ live, regions }: { live: Live; regions?: MapRegion[
           <h3 className="mb-2">Values</h3>
           {live.values?.top?.length ? <p className="t-small mb-3">Top three: {live.values.top.slice(0, 3).map(nice).join(", ")}.</p> : <p className="t-small muted mb-3">Ten values, ranked against your own average.</p>}
           <div className="flex flex-col gap-1.5">{VALUE_KEYS.map((k) => { const c = live.values?.centered?.[k]; return <Bar key={k} label={nice(k)} v={typeof c === "number" ? c + 2.5 : null} max={5} text={typeof c === "number" ? (c > 0 ? "+" : "") + c.toFixed(1) : "–"} />; })}</div>
+        </section>
+      )}
+      {show("drucker") && (
+        <section id="map-drucker" className="card">
+          <h3 className="mb-2">How you work best</h3>
+          {live.drucker && Object.keys(live.drucker.choices).length ? (
+            <div className="flex flex-col gap-3">
+              {DRUCKER_ROWS.map(([q, rows]) => {
+                const shown = rows.filter(([k]) => live.drucker!.choices[k]);
+                if (!shown.length) return null;
+                return (
+                  <div key={q}>
+                    <p className="t-caption mb-1">{q}</p>
+                    <ul className="t-small flex flex-col gap-1.5">
+                      {shown.map(([k, label]) => {
+                        const c = live.drucker!.choices[k];
+                        const l = k === "learning" ? live.drucker!.learning : null;
+                        return <li key={k} className="flex gap-3"><span className="t-caption w-28 shrink-0 muted">{label}</span><span>{c.text}{l && l.of > 1 ? ` (${l.count} of ${l.of} moments${l.tie ? ", a tie" : ""})` : ""}</span></li>;
+                      })}
+                    </ul>
+                  </div>
+                );
+              })}
+            </div>
+          ) : <p className="t-small muted">Sixteen quick choices, after Peter Drucker&apos;s five questions: how you perform, learn, value, belong and contribute.</p>}
+        </section>
+      )}
+      {show("wealth_dynamics") && (
+        <section id="map-wealth_dynamics" className="card">
+          <h3 className="mb-2">How you create value{live.wealth_dynamics?.profile ? ` · ${live.wealth_dynamics.profile}` : ""}</h3>
+          {live.wealth_dynamics ? (
+            <>
+              <p className="t-small mb-3">{WD_PLAIN[live.wealth_dynamics.profile] ?? ""}</p>
+              <div className="flex flex-col gap-1.5">{(["dynamo", "blaze", "tempo", "steel"] as const).map((k) => <Bar key={k} label={WD_ENERGY[k]} v={live.wealth_dynamics!.energies[k] ?? 0} max={100} text={`${live.wealth_dynamics!.energies[k] ?? 0}%`} />)}</div>
+            </>
+          ) : <p className="t-small muted">Twelve quick choices, after Roger Hamilton&apos;s Wealth Dynamics: which kind of work and money-making fits you.</p>}
         </section>
       )}
       {show("kolbe") && (

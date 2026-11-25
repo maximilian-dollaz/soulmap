@@ -7,6 +7,7 @@ import { DEFAULT_PROFILE } from "./profile";
 import { summarize as summarizePeers } from "./peer";
 import { energyForReport } from "./energy";
 import { withCheckin } from "./checkin";
+import { chatgptPath, shortPath, writeChatGPT, writeShort } from "./soul-short";
 
 const ROOT = path.resolve(process.cwd(), "..");
 /** The default profile keeps report/ as before; anyone else gets report/profiles/<id>/. */
@@ -37,6 +38,7 @@ export async function generateReport(profileId: string = DEFAULT_PROFILE): Promi
   const meetings = "(included in the summarized evidence above when present)";
   const claudeAi = "(included in the summarized evidence above when present)";
   const template = await fs.readFile(path.join(ROOT, "analysis", "report-prompt.md"), "utf8");
+  const standingRules = await standingRulesFor(profileId, s.notes);
 
   const input = {
     birth: s.birth,
@@ -54,13 +56,14 @@ export async function generateReport(profileId: string = DEFAULT_PROFILE): Promi
   };
 
   const name = s.profile.name || "this person";
-  const lensNames: Record<string, string> = { human_design: "Human Design", gene_keys: "Gene Keys", enneagram: "Enneagram", attachment: "attachment style", bigfive: "Big Five", chronotype: "chronotype", values: "Schwartz values", kolbe: "Kolbe A", working_genius: "Working Genius" };
+  const lensNames: Record<string, string> = { human_design: "Human Design", gene_keys: "Gene Keys", enneagram: "Enneagram", attachment: "attachment style", bigfive: "Big Five", chronotype: "chronotype", values: "Schwartz values", drucker: "Drucker (how you perform, learn, value, belong and contribute)", wealth_dynamics: "Wealth Dynamics (how you create value)", kolbe: "Kolbe A", working_genius: "Working Genius" };
   const lenses = (s.profile.enabled_lenses ?? []).map((l) => lensNames[l] ?? l).join(", ");
   const prompt = template
     .replace(/\{\{NAME\}\}/g, name)
     .replace(/\{\{INTENTION\}\}/g, s.profile.intention || "not stated")
     .replace(/\{\{LENSES\}\}/g, lenses || "the completed lenses")
     .replace("{{INPUT_JSON}}", JSON.stringify(input, null, 1))
+    .replace("{{STANDING_RULES}}", standingRules || "(none recorded)")
     .replace("{{WORKING_STYLE_LLM}}", workingStyle || "(not available)")
     .replace("{{WORKING_STYLE_MEETINGS}}", meetings || "(not available)")
     .replace("{{WORKING_STYLE_CLAUDE_AI}}", claudeAi || "(not available)");
@@ -73,6 +76,11 @@ export async function generateReport(profileId: string = DEFAULT_PROFILE): Promi
   await fs.writeFile(path.join(REPORT_DIR, "SOUL-MAP-human.md"), human.trim() + "\n");
   await fs.writeFile(path.join(REPORT_DIR, "SOUL-MAP-agent.md"), agent.trim() + "\n");
   await fs.writeFile(path.join(REPORT_DIR, "scores.json"), JSON.stringify(scores, null, 2));
+  // The short soul file (for Claude's preferences box) follows the agent file; drop the old one first so a failed rewrite is redone on next read.
+  await fs.rm(shortPath(REPORT_DIR), { force: true });
+  await fs.rm(chatgptPath(REPORT_DIR), { force: true });
+  const short = await writeShort(REPORT_DIR, agent, name).catch(() => "");
+  if (short) await writeChatGPT(REPORT_DIR, short, name).catch(() => null);
   await updateState((st) => { st.status = "reported"; }, profileId);
   if (profileId === DEFAULT_PROFILE) await mirrorToLibrary(name, human.trim(), withCheckin(agent)).catch(() => {});
   return { human: human.trim(), agent: agent.trim() };
@@ -108,6 +116,25 @@ async function mirrorToLibrary(name: string, human: string, agent: string) {
     });
     if (!ok) await fs.writeFile(path.join(LIBRARY_SOUL, `${slug}.md`), content).catch(() => {});
   }
+}
+
+/**
+ * The person's own rules for working with them: the owner's rules.md in Recall (sections A to E: how to
+ * communicate, how to work, hard gates, decisions and energy, asking), plus every correction filed through
+ * the Soul API. These win over the questionnaire defaults in the soul file.
+ */
+async function standingRulesFor(profileId: string, notes: string[]): Promise<string> {
+  const parts: string[] = [];
+  if (profileId === DEFAULT_PROFILE) {
+    const rules = await readIf(path.join(LIBRARY_SOUL, "rules.md"));
+    const a = rules.search(/^## A\./m), f = rules.search(/^## F\./m);
+    if (a >= 0) parts.push(rules.slice(a, f > a ? f : undefined).trim());
+  }
+  const corrections = notes.filter((n) => n.startsWith("[correction ")).slice(-40).map((n) => {
+    try { const j = JSON.parse(n.slice(n.indexOf("] ") + 2)) as { text?: string; rule?: string }; return `- ${j.rule || j.text}`; } catch { return ""; }
+  }).filter(Boolean);
+  if (corrections.length) parts.push("Corrections, newest last:\n" + corrections.join("\n"));
+  return parts.join("\n\n").slice(0, 8000);
 }
 
 export async function readReports(profileId: string = DEFAULT_PROFILE) {
@@ -154,20 +181,24 @@ async function runLocal(prompt: string, model: string): Promise<string> {
     return j.message.content.trim();
   };
   // A small local model needs the outline spelled out, or it writes about missing data instead of the person.
-  const rules = "Use only what the input shows; where a source is empty, leave it out silently. Never write that data is missing. Plain words, short sentences, no emoji, no tables, no dashes as punctuation.";
+  const rules = "Lead every result with what it practically means for how this person lives and works, and put the framework label after it in brackets; never open with the label. End each result with three lines: For you, For your team, For your AI, each one concrete behavior. Use only what the input shows; where a source is empty, leave it out silently. Never write that data is missing. Plain words, short sentences, no emoji, no tables, no dashes as punctuation.";
   const human = await one(`WRITE ONLY DOCUMENT 1 NOW (the person's own report), in markdown, with exactly these sections:
 # The Soul Map: <name>
 ## 1. In one breath (three sentences)
-## 2. Your design (Human Design: type and strategy, decision style, profile, open centers and what each one makes you absorb, built-in talents from the channels; each with a "You'll likely recognize this if" line)
-## 3. Your gifts (Gene Keys: for Life's Work, Evolution, Radiance and Purpose, the shadow, the gift and how each shows up at work)
-## 4. What drives you (top values, Enneagram, attachment)
-## 5. How you work best (Big Five, chronotype, strengths)
-## 6. Where you get stuck (two or three patterns, each with one thing to try)
-## 7. How to work with you (five bullets for teammates)
+## 2. Your design (Human Design: type and strategy, decision style, profile, open centers and what each one makes you absorb, built-in talents from the channels, and the life theme from the incarnation cross in a full paragraph: the contribution it points to, its four gates as four parts of one job, the work that lets it run and the work that fights it; each with a "You'll likely recognize this if" line)
+## 3. Your gifts (Gene Keys: for Life's Work, Evolution, Radiance and Purpose, the shadow, the gift and how each shows up in a real working situation; then \"Orienting for creative flow\" with three short lists: You, Your team, Your AI, each four concrete behaviors)
+## 4. How you work best (from scores.drucker, Drucker's five questions: how you perform (reader or listener, what you want first, how reports should reach you, where you work best); how you learn (scores.drucker.learning is the way most of their remembered fast-learning moments came in, count of of, and slow is what didn't stick); what you value (mirror test, the clash they named); where you belong; what you should contribute in the next 18 months; end with four bullets on how to brief you)
+## 5. How you create value (from scores.wealth_dynamics: the profile in plain words, the two strongest energies, the work to hand off, the partners who complement them, the roles that fit)
+## 6. What drives you (top values, Enneagram, attachment)
+## 7. How you work best (Big Five, chronotype, strengths)
+## 8. Where you get stuck (two or three patterns, each with one thing to try)
+## 9. How to work with you (five bullets for teammates)
 ${rules} Treat Human Design and Gene Keys as maps from birth data to check against experience; never use the words cosmic, divine, universe, aura, vibration or destiny. Do not write Document 2.`, 7000);
   const agent = await one(`WRITE ONLY DOCUMENT 2 NOW: instructions an AI agent follows when working with this person. Address the agent directly ("Lead with...", "Ask before..."). Markdown, exactly these sections, three to six bullets each:
 # Working with <name>: agent instructions
 ## Profile summary
+## How information reaches them (reader or listener, what comes first, length, format, medium, how to teach them something new)
+## Contribution (the 18-month contribution, their mirror test, what crosses their values)
 ## Communication
 ## Structuring work
 ## Decision support

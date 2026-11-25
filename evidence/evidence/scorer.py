@@ -19,6 +19,17 @@ from .scrub import clean_observation
 OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://localhost:11434/api/chat")
 ENGINE = os.environ.get("SOUL_ENGINE", "local")
 MODEL = os.environ.get("SOUL_CLAUDE_MODEL", "claude-haiku-5-5") if ENGINE == "claude" else os.environ.get("SOUL_LOCAL_MODEL", "qwen3:8b")
+LOCAL_MODEL = os.environ.get("SOUL_LOCAL_MODEL", "qwen3:8b")
+# Messages and email are scored on this Mac's local model unless the person allowed Claude for them.
+PERSONAL_ENGINE = os.environ.get("SOUL_PERSONAL_ENGINE", "local")
+
+
+def _local_ready() -> bool:
+    try:
+        with urllib.request.urlopen(OLLAMA_URL.replace("/api/chat", "/api/tags"), timeout=3) as r:
+            return r.status == 200
+    except Exception:
+        return False
 WINDOW_TURNS = 40
 WINDOW_CHARS = 6000
 TURN_CHARS = 1500  # each turn is truncated to this in the prompt, so windows are sized by it
@@ -114,10 +125,10 @@ def _claude(messages: list[dict], model: str) -> dict:
         return {}
 
 
-def score_window(win: list[Turn], model: str) -> dict:
+def score_window(win: list[Turn], model: str, engine: str = ENGINE) -> dict:
     text = "\n\n".join(f"[{t.ts or 'no time'}]\n{t.text[:TURN_CHARS]}" for t in win)
     user = f"{len(win)} messages written by the person follow. Rate them.\n\n{text}"
-    ask = _claude if ENGINE == "claude" else _ollama
+    ask = _claude if engine == "claude" else _ollama
     raw = ask([{"role": "system", "content": SYSTEM}, {"role": "user", "content": user}], model)
     scores = raw.get("scores") if isinstance(raw.get("scores"), dict) else raw
     clean = {}
@@ -131,6 +142,14 @@ def score_window(win: list[Turn], model: str) -> dict:
 
 def score_source(source: str, turns: list[Turn], tokens: set[str], max_windows: int | None,
                  model: str = MODEL, log=print) -> dict:
+    from . import PERSONAL
+    engine = ENGINE
+    if source in PERSONAL and PERSONAL_ENGINE != "claude":
+        engine, model = "local", LOCAL_MODEL
+        if not _local_ready():
+            log(f"  {source}: kept on this Mac, but the local model is not running; not scored. Install it in Settings, or allow Claude for messages and email.")
+            return {"windows": 0, "turns_scored": 0, "model": None, "dimensions": {d: {"mean": None, "stdev": 0.0, "n": 0} for d in DIMENSIONS},
+                    "observations": [], "caveats": ["personal source not scored: the local model is not running on this Mac"]}
     wins = windows(turns, max_windows)
     per_dim = {d: [] for d in DIMENSIONS}
     obs_counter: Counter[str] = Counter()
@@ -138,7 +157,7 @@ def score_source(source: str, turns: list[Turn], tokens: set[str], max_windows: 
     failed = 0
     for i, w in enumerate(wins, 1):
         t0 = time.time()
-        res = score_window(w, model)
+        res = score_window(w, model, engine)
         if not res["scores"]:
             failed += 1
         for d, v in res["scores"].items():

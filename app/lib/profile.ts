@@ -7,7 +7,9 @@
 export const DEFAULT_PROFILE = /^[a-z0-9][a-z0-9_-]{0,39}$/.test(process.env.SOUL_OWNER ?? "") ? process.env.SOUL_OWNER! : "me";
 
 /** The seven lenses every interview runs. Birth lenses fill from the chart, not from items. */
-export const ALWAYS_ON_LENSES = ["human_design", "gene_keys", "enneagram", "attachment", "bigfive", "chronotype", "values"] as const;
+export const ALWAYS_ON_LENSES = ["human_design", "gene_keys", "enneagram", "attachment", "bigfive", "chronotype", "values", "drucker", "wealth_dynamics"] as const;
+/** Always-on lenses added after launch. A new assessment goes here too, so people who already finished get its questions. */
+export const LATER_LENSES: readonly string[] = ["drucker", "wealth_dynamics"];
 /** Paid instruments: on only when the person toggles them and enters the real result. Never proxied. */
 export const PAID_LENSES = ["kolbe", "working_genius"] as const;
 export type Lens = (typeof ALWAYS_ON_LENSES)[number] | (typeof PAID_LENSES)[number];

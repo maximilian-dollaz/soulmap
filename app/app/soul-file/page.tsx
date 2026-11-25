@@ -12,14 +12,31 @@ type Peer = { n: number; link: string | null };
 const INSTALLS: { key: string; name: string; auto?: boolean; steps: string[] }[] = [
   { key: "recall", name: "Recall", auto: true, steps: ["Nothing to do. Recall loads this file at the start of every session on this Mac.", "Corrections you make anywhere land here and mirror into your Recall library."] },
   { key: "claude_code", name: "Claude Code", steps: ["On the Mac this app runs on: tap Add to Claude Code above. Every new Claude Code session reads it.", "On another computer: tap Download, save the file as ~/.claude/soul.md, then add the line @~/.claude/soul.md to ~/.claude/CLAUDE.md."] },
-  { key: "claude", name: "claude.ai", steps: ["Tap Copy above.", "In claude.ai open Settings, then Profile, then the field 'What personal preferences should Claude consider'. Paste, Save.", "Or make a Project called 'Me' and paste it into the project instructions."] },
-  { key: "chatgpt", name: "ChatGPT", steps: ["Tap Copy above.", "In ChatGPT open Settings, Personalization, Custom instructions. Paste into 'What would you like ChatGPT to know about you'. Save.", "If it is too long for the box, keep the first sections and put the rest in a Project's instructions."] },
+  { key: "claude", name: "Claude Project (full file)", steps: ["The short file at the top already works in every chat. For deep work, add the full file too.", "Tap Copy on the full file above.", "In Claude make a Project called 'Me' and paste it into the project instructions."] },
   { key: "grok", name: "Grokbot", steps: ["Tap Copy above.", "In Grok open Settings, Customize, and paste into the custom instructions field. Save.", "Start a new chat so it picks the file up."] },
 ];
+
+const CLAUDE_SETTINGS = "https://claude.ai/settings/profile";
+const CHATGPT_SETTINGS = "https://chatgpt.com/#settings/Personalization";
+const TEST_PROMPT = "Here is everything on my plate this week. Plan it for me, and tell me anything you'd do differently: ";
+
+function Step({ n, children }: { n: number; children: React.ReactNode }) {
+  return (
+    <li className="flex items-start gap-3">
+      <span className="display shrink-0 text-[1.25rem] leading-6 text-[var(--color-accent)]">{n}</span>
+      <div className="flex min-w-0 flex-1 flex-col gap-2">{children}</div>
+    </li>
+  );
+}
 
 export default function SoulFilePage() {
   const h = useHref();
   const [agent, setAgent] = useState("");
+  const [short, setShort] = useState<string | null>(null);
+  const [copiedKey, setCopiedKey] = useState("");
+  const [target, setTarget] = useState<"claude" | "chatgpt">("claude");
+  const [chatgpt, setChatgpt] = useState<{ respond: string; about: string } | null | "loading" | undefined>(undefined);
+  const [testCopied, setTestCopied] = useState(false);
   const [name, setName] = useState("");
   const [loaded, setLoaded] = useState(false);
   const [expanded, setExpanded] = useState(false);
@@ -43,7 +60,10 @@ export default function SoulFilePage() {
   const loadCorrections = () => api<{ corrections?: Correction[]; updated_at?: string | null }>("/api/soul/correct").then((j) => { if (j._status === 200) { setCorrections(j.corrections ?? []); setUpdated(j.updated_at ?? null); } }).catch(() => {});
   useEffect(() => {
     setCanDictate(detectVoiceSupport().recognition);
-    api<{ agent?: string }>("/api/report").then((j) => { setAgent(j.agent ?? ""); setLoaded(true); });
+    api<{ agent?: string }>("/api/report").then((j) => {
+      setAgent(j.agent ?? ""); setLoaded(true);
+      if (j.agent) api<{ short?: string }>("/api/soul/short").then((k) => setShort(k.short ?? "")).catch(() => setShort(""));
+    });
     api<{ profile?: { name?: string } }>("/api/live").then((j) => setName(j.profile?.name ?? "")).catch(() => {});
     loadCorrections();
     api<{ owner: boolean; recall: boolean; claude_code: boolean }>("/api/soul/install").then((j) => { if (j._status === 200) { setSetup(j); setOpen(j.recall ? "recall" : "claude_code"); } }).catch(() => {});
@@ -93,6 +113,22 @@ export default function SoulFilePage() {
       const ta = document.createElement("textarea"); ta.value = t; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove();
     }
   };
+  const copyKey = async (key: string, t: string) => { if (!t) return; await copyText(t); setCopiedKey(key); setTimeout(() => setCopiedKey(""), 1500); };
+  const copyTest = async () => { await copyText(TEST_PROMPT); setTestCopied(true); setTimeout(() => setTestCopied(false), 1500); };
+  const pickTarget = (k: "claude" | "chatgpt") => {
+    setTarget(k);
+    if (k === "chatgpt" && (chatgpt === undefined || chatgpt === null)) {
+      setChatgpt("loading");
+      api<{ chatgpt?: { respond: string; about: string } | null }>("/api/soul/short?for=chatgpt").then((j) => setChatgpt(j.chatgpt ?? null)).catch(() => setChatgpt(null));
+    }
+  };
+  const TryIt = () => (
+    <>
+      <span className="t-small">Start a new chat and try this. Add your real list at the end.</span>
+      <button type="button" className="copy-block text-left" onClick={copyTest} aria-live="polite">{testCopied ? "Copied" : TEST_PROMPT + "…"}</button>
+      <span className="t-caption muted">Your AI should plan around your energy, tell you what to hand off, and ask your view before giving its own on judgment calls. When it gets something wrong, correct it. It will offer the line to add to your file.</span>
+    </>
+  );
   /** One tap: reuse the newest link or make one, then copy its full URL (same host the person is on, so teammates reach it the same way). */
   const askTeammate = async () => {
     if (peerBusy) return;
@@ -138,7 +174,54 @@ export default function SoulFilePage() {
           </section>
         ) : (
           <>
+            <section className="card flex flex-col gap-4">
+              <div className="flex items-center gap-2">
+                <h2 className="flex-1">Put it in your AI</h2>
+                <div className="flex gap-1" role="tablist">
+                  {(["claude", "chatgpt"] as const).map((k) => (
+                    <button key={k} type="button" role="tab" aria-selected={target === k} className={`btn btn-sm ${target === k ? "btn-primary" : "btn-ghost"}`} onClick={() => pickTarget(k)}>{k === "claude" ? "Claude" : "ChatGPT"}</button>
+                  ))}
+                </div>
+              </div>
+              <p className="t-small muted">A few taps. Your AI reads this before every chat, so it works the way you do.</p>
+              {target === "claude" ? (
+              <ol className="flex flex-col gap-3">
+                <Step n={1}>
+                  <button type="button" className={`btn w-full ${copiedKey === "short" ? "btn-secondary" : "btn-primary"}`} style={{ minHeight: 48 }} onClick={() => copyKey("short", short ?? "")} disabled={!short} aria-live="polite">
+                    {short === null ? <><Loader /> Writing your short file</> : !short ? "Short file not ready. Use the full file below" : copiedKey === "short" ? <><Check size={16} /> Copied</> : <><Copy size={16} /> Copy my soul file</>}
+                  </button>
+                </Step>
+                <Step n={2}>
+                  <a className="btn btn-secondary" style={{ minHeight: 48 }} href={CLAUDE_SETTINGS} target="_blank" rel="noreferrer">Open Claude settings <ArrowRight size={16} /></a>
+                  <span className="t-small muted">Paste into &quot;What personal preferences should Claude consider in responses?&quot; and tap Save.</span>
+                </Step>
+                <Step n={3}><TryIt /></Step>
+              </ol>
+              ) : (
+              <ol className="flex flex-col gap-3">
+                {chatgpt === undefined || chatgpt === "loading" ? <p className="t-small muted"><Loader /> Fitting your file to ChatGPT&apos;s two boxes</p> : !chatgpt ? <p className="t-small muted">Couldn&apos;t fit it to ChatGPT yet. Tap ChatGPT again to retry.</p> : (<>
+                <Step n={1}>
+                  <a className="btn btn-secondary" style={{ minHeight: 48 }} href={CHATGPT_SETTINGS} target="_blank" rel="noreferrer">Open ChatGPT settings <ArrowRight size={16} /></a>
+                  <span className="t-small muted">Then Personalization, then Custom instructions.</span>
+                </Step>
+                <Step n={2}>
+                  <button type="button" className={`btn w-full ${copiedKey === "respond" ? "btn-secondary" : "btn-primary"}`} style={{ minHeight: 48 }} onClick={() => copyKey("respond", chatgpt.respond)}>{copiedKey === "respond" ? <><Check size={16} /> Copied</> : <><Copy size={16} /> Copy part 1</>}</button>
+                  <span className="t-small muted">Paste into the box about how ChatGPT should respond.</span>
+                </Step>
+                <Step n={3}>
+                  <button type="button" className={`btn w-full ${copiedKey === "about" ? "btn-secondary" : "btn-primary"}`} style={{ minHeight: 48 }} onClick={() => copyKey("about", chatgpt.about)}>{copiedKey === "about" ? <><Check size={16} /> Copied</> : <><Copy size={16} /> Copy part 2</>}</button>
+                  <span className="t-small muted">Paste into the box about you. Tap Save.</span>
+                </Step>
+                <Step n={4}><TryIt /></Step>
+                </>)}
+              </ol>
+              )}
+              {short && <details><summary className="t-small muted cursor-pointer">See the short file</summary><div className="copy-block mt-2">{short}</div></details>}
+            </section>
+
             <section>
+              <h2 className="mb-3">Full soul file</h2>
+              <p className="t-small muted mb-3">The complete version, for a Claude Project, Claude Code or any agent.</p>
               <div className={`copy-block ${expanded || lines <= 7 ? "" : "collapsed"} ${flash ? "flash" : ""}`}>
                 <button type="button" className={`btn btn-sm absolute right-3 top-3 z-10 ${copied ? "btn-secondary" : "btn-primary"}`} onClick={copy} aria-live="polite">{copied ? <><Check size={16} /> Copied</> : <><Copy size={16} /> Copy</>}</button>
                 {agent}
@@ -155,7 +238,7 @@ export default function SoulFilePage() {
             </section>
 
             <section>
-              <h2 className="mb-3">Put it in your AI</h2>
+              <h2 className="mb-3">Other places to put it</h2>
               <div className="flex flex-col gap-2">
                 {INSTALLS.filter((i) => i.key !== "recall" || setup?.recall).map((i) => (
                   <div key={i.key} className="card p-0">

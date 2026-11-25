@@ -150,8 +150,9 @@ export function parseScaleAnswer(text: string): { value: Answer15 | null; matche
 
 export function parseOptionAnswer(text: string, options: Array<{ key: string; text: string }>): { key: string | null; uncertain: boolean } {
   const t = " " + text.toLowerCase().replace(/[^a-z0-9' ]+/g, " ").replace(/\s+/g, " ").trim() + " ";
-  const pos: Record<string, string[]> = { a: ["a", "first", "the first one", "number one", "option a"], b: ["b", "second", "the second one", "middle one", "number two", "option b"], c: ["c", "third", "the third one", "the last one", "last", "number three", "option c"] };
-  for (const [k, ps] of Object.entries(pos)) if (ps.some(p => t.includes(" " + p + " ") || t.trim() === p)) return { key: k, uncertain: false };
+  const pos: Record<string, string[]> = { a: ["a", "1", "first", "the first one", "number one", "option a"], b: ["b", "2", "second", "the second one", "middle one", "number two", "option b"], c: ["c", "3", "third", "the third one", "number three", "option c"], d: ["d", "4", "fourth", "the fourth one", "number four", "option d"], e: ["e", "5", "fifth", "the fifth one", "number five", "option e"], f: ["f", "6", "sixth", "the sixth one", "number six", "option f"] };
+  for (const [k, ps] of Object.entries(pos)) if (options.some((o) => o.key === k) && ps.some(p => t.includes(" " + p + " ") || t.trim() === p)) return { key: k, uncertain: false };
+  if (/ (the )?last( one)? /.test(t) && options.length) return { key: options[options.length - 1].key, uncertain: false };
   const stop = new Set(["i", "the", "a", "an", "it", "and", "or", "to", "of", "my", "me", "is", "in", "on", "then", "so", "that", "with", "if", "at", "for", "do", "what", "its", "it's", "i'd", "i'll", "i'm"]);
   const words = (s: string) => new Set(s.toLowerCase().replace(/[^a-z0-9' ]+/g, " ").split(/\s+/).filter(w => w && !stop.has(w)));
   const answer = words(text);
@@ -405,4 +406,75 @@ export function parseSimilarityAnswer(text: string): { value: 1 | 2 | 3 | 4 | 5 
   if (m && !/ (half|fifty) /.test(t)) return { value: (CLOCK_WORDS[m[1]] ?? parseInt(m[1])) as V6, matched: m[1] };
   const hit = longestPhrase(t, SIMILARITY_WORDS);
   return hit ? { value: hit.value as V6, matched: hit.matched } : { value: null, matched: null };
+}
+
+// ---------- Drucker: the five questions of 'Managing Oneself' ----------
+export interface DruckerBank { items: { id: string; dimension: string; question?: string; group?: string; options: { key: string; text: string; value: string }[] }[] }
+export interface DruckerLearning {
+  value: string; text: string; // the way that showed up most across the remembered moments
+  count: number; of: number; // how many of the moments it showed up in
+  moments: string[]; // every remembered way, in order
+  tie: boolean; // two ways showed up equally often; the first one remembered is reported
+  slow: string | null; // how it was coming when learning didn't stick
+}
+export interface DruckerResult {
+  choices: Record<string, { value: string; text: string; question?: string }>;
+  learning: DruckerLearning | null;
+  answered: number; total: number; confidence: number;
+}
+
+/** Each answer is the person's own pick, recorded by dimension with its plain-words text and the Drucker question it answers.
+ *  Grouped items (how a person learns) are remembered moments, not self-guesses: the way that shows up most is the result. */
+export function score_drucker(answers: Answers, bank: DruckerBank): DruckerResult {
+  const choices: DruckerResult["choices"] = {};
+  const groups: Record<string, { value: string; text: string }[]> = {};
+  for (const it of bank.items) {
+    const a = answers[it.id];
+    const o = it.options.find((x) => x.key === String(a ?? "").toLowerCase());
+    if (!o) continue;
+    choices[it.dimension] = { value: o.value, text: o.text, ...(it.question ? { question: it.question } : {}) };
+    if (it.group) (groups[it.group] ??= []).push({ value: o.value, text: o.text });
+  }
+  let learning: DruckerLearning | null = null;
+  const m = groups.learning;
+  if (m?.length) {
+    const n: Record<string, number> = {};
+    for (const x of m) n[x.value] = (n[x.value] ?? 0) + 1;
+    const best = Math.max(...Object.values(n));
+    const top = m.find((x) => n[x.value] === best)!; // first remembered among the most frequent
+    learning = { value: top.value, text: top.text, count: best, of: m.length, moments: m.map((x) => x.value),
+      tie: Object.values(n).filter((c) => c === best).length > 1, slow: choices.learning_slow?.value ?? null };
+    choices.learning = { value: top.value, text: top.text, question: "learn" };
+  }
+  const answered = bank.items.filter((it) => it.options.some((x) => x.key === String(answers[it.id] ?? "").toLowerCase())).length;
+  return { choices, learning, answered, total: bank.items.length, confidence: round2(answered / bank.items.length) };
+}
+
+// ---------- Wealth Dynamics: how a person naturally creates value ----------
+export type Energy = "dynamo" | "blaze" | "tempo" | "steel";
+export interface WealthBank { items: { id: string; options: { key: string; text: string; value: Energy }[] }[] }
+export interface WealthResult {
+  energies: Record<Energy, number>; // share of answers, 0-100
+  primary: Energy; secondary: Energy;
+  profile: string; // Creator, Star, Supporter, Deal Maker, Trader, Accumulator, Lord, Mechanic
+  answered: number; total: number; confidence: number;
+}
+/** Neighbours on the Wealth Dynamics wheel; a profile between two energies exists only for neighbours. */
+const WD_PAIR: Record<string, string> = { "blaze+dynamo": "Star", "blaze+tempo": "Deal Maker", "steel+tempo": "Accumulator", "dynamo+steel": "Mechanic" };
+const WD_PURE: Record<Energy, string> = { dynamo: "Creator", blaze: "Supporter", tempo: "Trader", steel: "Lord" };
+
+/** Each pick adds to one energy. A clear lead (3+ picks) or a non-neighbouring runner-up gives the pure profile; otherwise the pair between the top two. */
+export function score_wealth_dynamics(answers: Answers, bank: WealthBank): WealthResult {
+  const count: Record<Energy, number> = { dynamo: 0, blaze: 0, tempo: 0, steel: 0 };
+  let answered = 0;
+  for (const it of bank.items) {
+    const o = it.options.find((x) => x.key === String(answers[it.id] ?? "").toLowerCase());
+    if (o) { count[o.value]++; answered++; }
+  }
+  const order = (Object.keys(count) as Energy[]).sort((x, y) => count[y] - count[x]);
+  const [primary, secondary] = order;
+  const pair = WD_PAIR[[primary, secondary].sort().join("+")];
+  const profile = count[primary] - count[secondary] >= 3 || !pair ? WD_PURE[primary] : pair;
+  const energies = Object.fromEntries(order.map((e) => [e, answered ? Math.round((100 * count[e]) / answered) : 0])) as Record<Energy, number>;
+  return { energies, primary, secondary, profile, answered, total: bank.items.length, confidence: round2(answered / bank.items.length) };
 }

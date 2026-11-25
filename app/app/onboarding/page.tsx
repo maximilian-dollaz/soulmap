@@ -6,7 +6,7 @@ import { ArrowLeft, ArrowRight, Check, Link as LinkIcon, Loader, Mic, Shield, Tr
 import { lensName } from "@/components/interview-types";
 import { detectVoiceSupport } from "@/components/useVoice";
 
-const ALWAYS_ON = ["human_design", "gene_keys", "enneagram", "attachment", "bigfive", "chronotype", "values"];
+const ALWAYS_ON = ["human_design", "gene_keys", "enneagram", "attachment", "bigfive", "chronotype", "values", "drucker", "wealth_dynamics"];
 const PAID = [
   { key: "kolbe", name: "Kolbe A", blurb: "Your conative MO: how you naturally take action.", buy: "https://www.kolbe.com/kolbe-a-index/" },
   { key: "working_genius", name: "Working Genius", blurb: "The six kinds of work and which ones give you energy.", buy: "https://www.workinggenius.com/" },
@@ -46,6 +46,7 @@ export default function Onboarding() {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
   const [existing, setExisting] = useState(false);
+  const [welcome, setWelcome] = useState<"loading" | "show" | "done">("loading");
   const [listening, setListening] = useState(false);
   const [canDictate, setCanDictate] = useState(false);
   const [ai, setAi] = useState<AiStatus | null>(null);
@@ -59,9 +60,10 @@ export default function Onboarding() {
     if (s0) { setStep(s0); setEntryStep(s0); }
     setCanDictate(detectVoiceSupport().recognition);
     api<{ profile?: { name?: string; email?: string; intention?: string; birth_time_known?: boolean; enabled_lenses?: string[]; consent_at?: string }; birth?: { date: string; time: string; place: string; tz?: string; time_confidence?: string } }>("/api/profile").then((j) => {
-      if (j._status !== 200 || !j.profile) return;
+      if (j._status !== 200 || !j.profile) { setWelcome(s0 ? "done" : "show"); return; }
       const p = j.profile;
       setExisting(!!p.consent_at);
+      setWelcome(p.consent_at || s0 ? "done" : "show");
       setF((s) => ({
         ...s,
         name: p.consent_at && p.name ? p.name : s.name,
@@ -189,6 +191,8 @@ export default function Onboarding() {
     if (step < LAST) setStep(step === 2 && managed ? 4 : step + 1); else finish();
   };
 
+  if (welcome !== "done") return welcome === "show" ? <Welcome onStart={() => setWelcome("done")} /> : <main className="mx-auto min-h-dvh max-w-lg" />;
+
   return (
     <main className="mx-auto flex min-h-dvh max-w-lg flex-col">
       <header className="gutter flex items-center justify-between pt-[max(8px,env(safe-area-inset-top))]">
@@ -225,7 +229,7 @@ export default function Onboarding() {
         {step === 1 && (
           <div key="s1" className="fade-in flex flex-col gap-5">
             <h1 className="display">When and where were you born?</h1>
-            <p className="t-small muted">Human Design and Gene Keys come from the sky at that moment. Date and city are enough to start.</p>
+            <p className="t-small muted">Human Design and Gene Keys are worked out from your birth date, time and place. Date and city are enough to start.</p>
             <label className="block">
               <span className="field-label t-caption muted">Date</span>
               <input ref={first} className="field" type="date" value={f.date} onChange={(e) => set("date", e.target.value)} max={new Date().toISOString().slice(0, 10)} required />
@@ -319,6 +323,7 @@ export default function Onboarding() {
                     <span className="field-label t-caption muted">{ai?.has_key ? "A key is saved on this Mac. Paste a new one to replace it." : "Anthropic API key"}</span>
                     <input ref={first} className="field" type="password" autoComplete="off" spellCheck={false} value={key} onChange={(e) => setKey(e.target.value)} placeholder="sk-ant-..." />
                     <a className="t-caption mt-2 inline-flex items-center gap-1 text-[var(--color-accent)]" href="https://console.anthropic.com/settings/keys" target="_blank" rel="noreferrer"><LinkIcon size={14} /> Get a key from the Anthropic Console</a>
+                    {!ai?.has_key && <span className="t-caption muted mt-1 block">New to it? Sign up at the Console, add $5 of credit under Billing, then Settings, API keys, Create key, and paste it here. About 3 minutes; $5 is plenty to start.</span>}
                   </label>
                 )}
                 <button type="button" className={`card flex flex-col gap-2 text-left ${engine === "local" ? "border-[var(--color-accent)]" : ""}`} onClick={() => setEngine("local")} role="radio" aria-checked={engine === "local"}>
@@ -330,6 +335,7 @@ export default function Onboarding() {
                   <span className="t-caption muted">One download of about 5 GB. Reports take a few minutes and read plainer.</span>
                 </button>
                 {engine === "local" && ai && <LocalProgress ai={ai} />}
+                <p className="t-caption muted">Either way, messages and email (if you turn them on later) are read on this Mac only.</p>
               </>
             )}
           </div>
@@ -342,6 +348,7 @@ export default function Onboarding() {
               {[
                 HOSTED ? "Your answers, chart and report are stored for this browser only." : managed ? "Your answers, chart and report are stored on the team's Recall server, in your own profile." : "Your answers, chart and report are stored on this Mac, in your own profile.",
                 HOSTED || managed || engine === "claude" ? "Claude by Anthropic reads your answers and your own meeting lines to score them and write your report. Nothing else is sent." : "Nothing leaves this Mac: the local model does all the thinking.",
+                "Messages and email stay off until you turn them on. Only what you sent is read, on this Mac.",
                 "Anything you upload is summarised, then the raw file is deleted.",
                 "Reports never contain other people's words, only patterns.",
                 "If you share with a team, they see one card: how to work with you. Never the full report.",
@@ -384,4 +391,49 @@ function LocalProgress({ ai }: { ai: AiStatus }) {
   if (ai.install.state === "running") return <p className="t-caption muted inline-flex items-center gap-1"><Loader size={14} /> {ai.install.step ?? "Installing"}{ai.install.percent !== undefined ? ` · ${ai.install.percent}%` : ""}. You can carry on meanwhile.</p>;
   if (ai.install.state === "failed") return <p className="t-caption text-[var(--color-danger)]">{ai.install.step ?? "The download failed."} Tap Next to try again.</p>;
   return <p className="t-caption muted">The download starts when you tap Next.</p>;
+}
+
+/** First visit only: what the Soul Map is, how it works, and how to get the most from it. */
+function Welcome({ onStart }: { onStart: () => void }) {
+  const steps: [string, string][] = [
+    ["Answer questions", "About 45 minutes of quick questions, by tapping, typing or talking. Stop any time; it remembers where you were."],
+    ["Connect what you already use (optional)", "Your AI chats, meetings, messages and email show how you actually work. Only your own words are read, never anyone else\'s. Messages and email never leave this Mac."],
+    ["Get three things", "A report on how you are built and work best. A one-minute card that tells others how to work with you. A soul file your AI reads so it works the way you do."],
+  ];
+  const most: string[] = [
+    "Add your soul file to the AI you use most. It is one tap for Claude Code.",
+    "Share your card with the people you work with, and ask for theirs.",
+    "Answer the two questions your AI asks after big tasks: how it went and how it affected your energy. Once a week you get an Energy Audit with small changes to try.",
+    "Read the report slowly. Keep what you recognize, and tell your Soul Map what is off. It updates.",
+  ];
+  return (
+    <main className="mx-auto flex min-h-dvh max-w-lg flex-col">
+      <div className="gutter fade-in flex flex-1 flex-col gap-6 pt-[max(32px,env(safe-area-inset-top))]">
+        <div>
+          <p className="eyebrow">Know Thyself.</p>
+          <h1 className="display">The Soul Map</h1>
+          <p className="mt-3 text-[1.0625rem]">A whole human understanding system. It maps how you are built, then shapes how you work, and how your AI works with you, to fit.</p>
+        </div>
+        <section>
+          <h2 className="t-label muted mb-3">How it works</h2>
+          <ol className="flex flex-col gap-4">
+            {steps.map(([t, d], i) => (
+              <li key={t} className="flex gap-3">
+                <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[var(--color-accent-soft)] text-[0.9rem] font-semibold text-[var(--color-accent)]">{i + 1}</span>
+                <div><p className="font-medium">{t}</p><p className="t-small muted">{d}</p></div>
+              </li>
+            ))}
+          </ol>
+        </section>
+        <section>
+          <h2 className="t-label muted mb-3">To get the most from it</h2>
+          <ul className="flex flex-col gap-2">{most.map((m) => <li key={m} className="t-small flex gap-2"><Check size={16} className="mt-0.5 shrink-0 text-[var(--color-ok)]" /> <span>{m}</span></li>)}</ul>
+        </section>
+        <p className="t-small muted">Nothing here asks you to believe anything. Every result is a hypothesis: keep what you recognize.</p>
+        <div className="safe-bottom mt-auto pt-2">
+          <button type="button" className="btn btn-primary btn-block" onClick={onStart}>Start <ArrowRight /></button>
+        </div>
+      </div>
+    </main>
+  );
 }

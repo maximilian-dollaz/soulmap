@@ -21,6 +21,7 @@ export type PlanItem = {
   bank: string;
   say: string;
   answer: AnswerKind;
+  options?: { key: string; text: string }[]; // A/B/C items that carry their own choices (Drucker)
   skip_if_confident?: boolean;
   ask_if_contending?: number[];
 };
@@ -30,7 +31,7 @@ export type Plan = { version: string; items: PlanItem[]; sections: PlanSection[]
 export const PLAN = planJson as unknown as Plan;
 
 /** Which lens a plan section belongs to; sections not listed (welcome, close) carry no items. */
-const SECTION_LENS: Record<string, string> = { enneagram: "enneagram", attachment: "attachment", bigfive: "bigfive", chronotype: "chronotype", values: "values", kolbe: "kolbe", kolbe_proxy: "kolbe", working_genius: "working_genius" };
+const SECTION_LENS: Record<string, string> = { enneagram: "enneagram", attachment: "attachment", bigfive: "bigfive", chronotype: "chronotype", values: "values", drucker: "drucker", wealth_dynamics: "wealth_dynamics", kolbe: "kolbe", kolbe_proxy: "kolbe", working_genius: "working_genius" };
 const BIRTH_LENSES = ["human_design", "gene_keys"];
 
 const SCALE_LABELS: Record<AnswerKind, Record<number, string> | null> = {
@@ -44,6 +45,11 @@ const SCALE_LABELS: Record<AnswerKind, Record<number, string> | null> = {
 type KolbeOption = { key: string; text: string; zone: string };
 const KOLBE_OPTIONS: Record<string, KolbeOption[]> = Object.fromEntries(((kolbeBank as { items: { id: string; options: KolbeOption[] }[] }).items).map((i) => [i.id, i.options]));
 const BIGFIVE_DOMAIN: Record<string, string> = Object.fromEntries(((bigfiveBank as { items: { id: string; domain: string }[] }).items).map((i) => [i.id, i.domain]));
+
+/** An A/B/C item's choices: its own (Drucker, Wealth Dynamics), else the Kolbe bank's. */
+export function optionsFor(item: PlanItem): { key: string; text: string }[] {
+  return (item.options ?? KOLBE_OPTIONS[item.id] ?? []).map(({ key, text }) => ({ key, text }));
+}
 
 const ITEM_BY_ID: Record<string, PlanItem> = Object.fromEntries(PLAN.items.map((i) => [i.id, i]));
 const ITEMS_BY_SECTION: Record<string, PlanItem[]> = {};
@@ -158,7 +164,7 @@ function toAsked(item: PlanItem, w: Walk, extra: Partial<AskedItem> = {}): Asked
     id: item.id, section, lens: lensOf(section), say: item.say, answer: item.answer,
     scale: w.section.scale ?? null,
     labels: SCALE_LABELS[item.answer] ?? null,
-    options: item.answer === "A/B/C" ? (KOLBE_OPTIONS[item.id] ?? []).map(({ key, text }) => ({ key, text })) : null,
+    options: item.answer === "A/B/C" ? optionsFor(item) : null,
     index: Math.min(done + 1, w.askedCount), of: w.askedCount,
     ...extra,
   };
@@ -291,7 +297,10 @@ export function clarificationPrompt(item: PlanItem): string {
   switch (item.answer) {
     case "1-6": return "Could you give me a number 1 to 6? 1 is not like me at all, 6 is very much like me.";
     case "clock": return "Could you give me a time? Something like 'six thirty' or 'eleven p.m.'";
-    case "A/B/C": return "Which is closest: A, B, or C?";
+    case "A/B/C": {
+      const keys = optionsFor(item).map((o) => o.key.toUpperCase());
+      return keys.length > 1 ? `Which is closest: ${keys.slice(0, -1).join(", ")}, or ${keys[keys.length - 1]}?` : "Which is closest?";
+    }
     case "energy": return "Could you give me a number 1 to 5? 1 drains you, 5 really energizes you.";
     default: return "Could you give me a number 1 to 5? 1 is not at all, 5 is completely.";
   }
@@ -324,7 +333,7 @@ export function parseForItem(item: PlanItem, text: string): Parsed | null {
       return h === null || h < 0 || h >= 24 ? null : { value: Math.round(h * 100) / 100, matched: t };
     }
     case "A/B/C": {
-      const opts = KOLBE_OPTIONS[item.id] ?? [];
+      const opts = optionsFor(item);
       const r = parseOptionAnswer(t, opts);
       return r.key === null || r.uncertain ? null : { value: r.key, matched: r.key };
     }

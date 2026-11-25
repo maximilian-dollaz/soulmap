@@ -1,6 +1,6 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
-import { DEFAULT_PROFILE, defaultProfile, type Profile } from "./profile";
+import { ALWAYS_ON_LENSES, LATER_LENSES, DEFAULT_PROFILE, defaultProfile, type Profile } from "./profile";
 
 /**
  * Local-first state, one JSON file per person. Everything the interview
@@ -22,7 +22,7 @@ export type Birth = {
 
 export type Answer = {
   item_id: string;
-  section: "enneagram" | "attachment" | "kolbe" | "bigfive" | "working_genius" | "chronotype" | "values" | "open";
+  section: "enneagram" | "attachment" | "kolbe" | "bigfive" | "working_genius" | "chronotype" | "values" | "drucker" | "wealth_dynamics" | "open";
   value: number | string;
   raw: string;
   at: string;
@@ -135,6 +135,10 @@ function hydrate(id: string, raw: Partial<SoulState>): SoulState {
   const base = emptyState(id);
   const profile: Profile = { ...base.profile, ...(raw.profile ?? {}), id };
   if (!Array.isArray(profile.enabled_lenses) || !profile.enabled_lenses.length) profile.enabled_lenses = base.profile.enabled_lenses;
+  // Lenses added later (LATER_LENSES) reach everyone who had every original always-on lens, so people who
+  // finished before a new assessment existed get its questions; a profile deliberately limited to fewer lenses stays as it is.
+  else if (ALWAYS_ON_LENSES.filter((l) => !LATER_LENSES.includes(l)).every((l) => profile.enabled_lenses.includes(l)))
+    profile.enabled_lenses = [...profile.enabled_lenses, ...LATER_LENSES.filter((l) => !profile.enabled_lenses.includes(l))];
   const interview = { ...base.interview, ...(raw.interview ?? {}) };
   return { ...base, ...raw, profile, interview };
 }

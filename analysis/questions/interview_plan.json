@@ -1,9 +1,9 @@
 {
  "version": "0.2",
  "estimated_minutes": {
-  "all_items": 59,
-  "with_skips": 47,
-  "assumption": "about 20 seconds per item including the person's answer; Kolbe items run longer, instinct, chronotype and values items shorter. 175 items in all, 141 with every skip taken."
+  "all_items": 52,
+  "with_skips": 43,
+  "assumption": "about 20 seconds per item including the person's answer; Kolbe items run longer, instinct, chronotype and values items shorter. 155 items in all, 129 with every skip taken."
  },
  "agent_style": [
   "One item at a time. Read the item, then the scale cue if the person hasn't used the scale on the last two answers.",
@@ -15,7 +15,7 @@
  "sections": [
   {
    "key": "welcome",
-   "intro": "Hey {{name}}. This is the Soul Map interview. Five parts, about forty-five minutes, and you can stop and pick up any time, even days later. There are no right answers; go with your gut, and short answers are perfect. Ready?"
+   "intro": "Hey {{name}}. This is the Soul Map interview. Seven parts, about fifty minutes, and you can stop and pick up any time, even days later. There are no right answers; go with your gut, and short answers are perfect. Ready?"
   },
   {
    "key": "enneagram",
@@ -55,12 +55,20 @@
   },
   {
    "key": "values",
-   "intro": "Last part: what matters to you. I'll describe a person. Tell me how much that person is like you. Six steps this time: not like me at all, not like me, a little like me, somewhat like me, like me, or very much like me.",
+   "intro": "Part five: what matters to you. I'll describe a person. Tell me how much that person is like you. Six steps this time: not like me at all, not like me, a little like me, somewhat like me, like me, or very much like me.",
    "scale": "Not like me at all, not like me, a little like me, somewhat like me, like me, or very much like me?",
    "checkpoint": {
     "after_item": "UN3",
     "rule": "Run score_values on all 21 answers. No skips: every value has only two items. If notes mention a flat profile, ask one follow-up: 'If you had to drop one of these from your life, which goes first?' and record it in the transcript, not the scores."
    }
+  },
+  {
+   "key": "drucker",
+   "intro": "Part six: how you work best, after Peter Drucker's five questions: how you perform, how you learn, what you value, where you belong, and what you should contribute. Sixteen quick choices. A few ask you to recall a real moment first; picture it, then pick what actually happened, not what you think should be true. This tells your AI and your team how to brief you and what to hand you."
+  },
+  {
+   "key": "wealth_dynamics",
+   "intro": "Last part: how you naturally create value. Twelve quick choices, four options each. Pick the one most like you, not the one you wish were true. This shows which kind of work, roles and money-making fit you, and which to hand to someone else."
   },
   {
    "key": "close",
@@ -941,6 +949,734 @@
    "say": "Someone who cares deeply about nature and looking after the environment. How much like you is that?",
    "answer": "1-6",
    "skip_if_confident": false
+  },
+  {
+   "id": "DR1",
+   "bank": "drucker",
+   "say": "When someone needs to bring you up to speed on something important, what works best for you?",
+   "answer": "A/B/C",
+   "skip_if_confident": false,
+   "options": [
+    {
+     "key": "a",
+     "text": "Send it to me in writing; I take it in best by reading"
+    },
+    {
+     "key": "b",
+     "text": "Tell me; I take it in best by listening"
+    },
+    {
+     "key": "c",
+     "text": "Talk me through it, then send it in writing"
+    }
+   ]
+  },
+  {
+   "id": "DR3",
+   "bank": "drucker",
+   "say": "When information reaches you, what do you want first?",
+   "answer": "A/B/C",
+   "skip_if_confident": false,
+   "options": [
+    {
+     "key": "a",
+     "text": "The bottom line, with detail only if I ask"
+    },
+    {
+     "key": "b",
+     "text": "The whole picture, start to finish"
+    },
+    {
+     "key": "c",
+     "text": "A picture: a diagram, a table, an example"
+    }
+   ]
+  },
+  {
+   "id": "DR8",
+   "bank": "drucker",
+   "say": "When an AI or a teammate reports back to you, what works best?",
+   "answer": "A/B/C",
+   "skip_if_confident": false,
+   "options": [
+    {
+     "key": "a",
+     "text": "A short written message I can read in a minute"
+    },
+    {
+     "key": "b",
+     "text": "A voice note or a quick call"
+    },
+    {
+     "key": "c",
+     "text": "A page I can come back to, with everything in one place"
+    }
+   ]
+  },
+  {
+   "id": "DR4",
+   "bank": "drucker",
+   "say": "Where do you do your best work?",
+   "answer": "A/B/C",
+   "skip_if_confident": false,
+   "options": [
+    {
+     "key": "a",
+     "text": "Alone, with time to think"
+    },
+    {
+     "key": "b",
+     "text": "With one close partner"
+    },
+    {
+     "key": "c",
+     "text": "In a team, bouncing off people"
+    }
+   ]
+  },
+  {
+   "id": "DR5",
+   "bank": "drucker",
+   "say": "Which role brings out your best?",
+   "answer": "A/B/C",
+   "skip_if_confident": false,
+   "options": [
+    {
+     "key": "a",
+     "text": "The one who makes the call"
+    },
+    {
+     "key": "b",
+     "text": "The trusted advisor to the one who makes the call"
+    },
+    {
+     "key": "c",
+     "text": "Either, depending on the subject"
+    }
+   ]
+  },
+  {
+   "id": "DR6",
+   "bank": "drucker",
+   "say": "When do you do your best work?",
+   "answer": "A/B/C",
+   "skip_if_confident": false,
+   "options": [
+    {
+     "key": "a",
+     "text": "Under pressure, close to a deadline"
+    },
+    {
+     "key": "b",
+     "text": "With structure and plenty of lead time"
+    },
+    {
+     "key": "c",
+     "text": "A steady rhythm, the same every day"
+    }
+   ]
+  },
+  {
+   "id": "DRL1",
+   "bank": "drucker",
+   "say": "Think of a real time you picked something up fast at work. Picture the moment it clicked. How did it reach you?",
+   "answer": "A/B/C",
+   "skip_if_confident": false,
+   "options": [
+    {
+     "key": "a",
+     "text": "I read about it"
+    },
+    {
+     "key": "b",
+     "text": "Someone explained it to me out loud"
+    },
+    {
+     "key": "c",
+     "text": "I watched someone do it"
+    },
+    {
+     "key": "d",
+     "text": "I just did it, tried and adjusted"
+    },
+    {
+     "key": "e",
+     "text": "I wrote it out in my own words"
+    },
+    {
+     "key": "f",
+     "text": "I talked it through or taught it to someone"
+    }
+   ]
+  },
+  {
+   "id": "DRL2",
+   "bank": "drucker",
+   "say": "Now a time outside work you learned something quickly: a sport, an instrument, a language, a tool. How did that one reach you?",
+   "answer": "A/B/C",
+   "skip_if_confident": false,
+   "options": [
+    {
+     "key": "a",
+     "text": "I read about it"
+    },
+    {
+     "key": "b",
+     "text": "Someone explained it to me out loud"
+    },
+    {
+     "key": "c",
+     "text": "I watched someone do it"
+    },
+    {
+     "key": "d",
+     "text": "I just did it, tried and adjusted"
+    },
+    {
+     "key": "e",
+     "text": "I wrote it out in my own words"
+    },
+    {
+     "key": "f",
+     "text": "I talked it through or taught it to someone"
+    }
+   ]
+  },
+  {
+   "id": "DRL3",
+   "bank": "drucker",
+   "say": "One more: something you understood quickly in the past year. How did it get in?",
+   "answer": "A/B/C",
+   "skip_if_confident": false,
+   "options": [
+    {
+     "key": "a",
+     "text": "I read about it"
+    },
+    {
+     "key": "b",
+     "text": "Someone explained it to me out loud"
+    },
+    {
+     "key": "c",
+     "text": "I watched someone do it"
+    },
+    {
+     "key": "d",
+     "text": "I just did it, tried and adjusted"
+    },
+    {
+     "key": "e",
+     "text": "I wrote it out in my own words"
+    },
+    {
+     "key": "f",
+     "text": "I talked it through or taught it to someone"
+    }
+   ]
+  },
+  {
+   "id": "DRL4",
+   "bank": "drucker",
+   "say": "And the opposite: something you tried to learn that just wouldn't stick. How was it coming to you?",
+   "answer": "A/B/C",
+   "skip_if_confident": false,
+   "options": [
+    {
+     "key": "a",
+     "text": "I read about it"
+    },
+    {
+     "key": "b",
+     "text": "Someone explained it to me out loud"
+    },
+    {
+     "key": "c",
+     "text": "I watched someone do it"
+    },
+    {
+     "key": "d",
+     "text": "I just did it, tried and adjusted"
+    },
+    {
+     "key": "e",
+     "text": "I wrote it out in my own words"
+    },
+    {
+     "key": "f",
+     "text": "I talked it through or taught it to someone"
+    }
+   ]
+  },
+  {
+   "id": "DRV1",
+   "bank": "drucker",
+   "say": "At the end of a working day, what do you most need to see in the mirror?",
+   "answer": "A/B/C",
+   "skip_if_confident": false,
+   "options": [
+    {
+     "key": "a",
+     "text": "That I was honest, even when it cost me"
+    },
+    {
+     "key": "b",
+     "text": "That I made a real difference to someone"
+    },
+    {
+     "key": "c",
+     "text": "That the work was excellent, not just done"
+    },
+    {
+     "key": "d",
+     "text": "That I stayed free and true to my own way"
+    },
+    {
+     "key": "e",
+     "text": "That I grew, and pushed past my edge"
+    }
+   ]
+  },
+  {
+   "id": "DRV2",
+   "bank": "drucker",
+   "say": "Think of a time work asked something of you that felt wrong, or a place you left or wanted to leave. What was at stake?",
+   "answer": "A/B/C",
+   "skip_if_confident": false,
+   "options": [
+    {
+     "key": "a",
+     "text": "Honesty: cutting corners or bending the truth"
+    },
+    {
+     "key": "b",
+     "text": "How people were treated"
+    },
+    {
+     "key": "c",
+     "text": "Quality: being asked to ship work below my standard"
+    },
+    {
+     "key": "d",
+     "text": "Short-term money over the long game"
+    },
+    {
+     "key": "e",
+     "text": "Control: not being trusted to do it my way"
+    },
+    {
+     "key": "f",
+     "text": "Nothing like that has happened to me"
+    }
+   ]
+  },
+  {
+   "id": "DR7",
+   "bank": "drucker",
+   "say": "Where do you thrive?",
+   "answer": "A/B/C",
+   "skip_if_confident": false,
+   "options": [
+    {
+     "key": "a",
+     "text": "A small team where everyone does a bit of everything"
+    },
+    {
+     "key": "b",
+     "text": "A larger organization with clear roles"
+    },
+    {
+     "key": "c",
+     "text": "On my own, with people I bring in when needed"
+    }
+   ]
+  },
+  {
+   "id": "DRB1",
+   "bank": "drucker",
+   "say": "Think of the place or project where you did your best work so far. What made it fit?",
+   "answer": "A/B/C",
+   "skip_if_confident": false,
+   "options": [
+    {
+     "key": "a",
+     "text": "The people I worked with"
+    },
+    {
+     "key": "b",
+     "text": "A mission I believed in"
+    },
+    {
+     "key": "c",
+     "text": "Freedom to do it my way"
+    },
+    {
+     "key": "d",
+     "text": "A hard challenge at a fast pace"
+    },
+    {
+     "key": "e",
+     "text": "Clear goals and a clear structure"
+    }
+   ]
+  },
+  {
+   "id": "DRC1",
+   "bank": "drucker",
+   "say": "Look at your work as it is right now, not what you'd like to do. What does it need most from you?",
+   "answer": "A/B/C",
+   "skip_if_confident": false,
+   "options": [
+    {
+     "key": "a",
+     "text": "A new idea or a clear direction"
+    },
+    {
+     "key": "b",
+     "text": "The right people brought in and on board"
+    },
+    {
+     "key": "c",
+     "text": "The work itself done well and on time"
+    },
+    {
+     "key": "d",
+     "text": "A system so it runs without me"
+    },
+    {
+     "key": "e",
+     "text": "Money or deals brought in"
+    }
+   ]
+  },
+  {
+   "id": "DRC2",
+   "bank": "drucker",
+   "say": "Eighteen months from now, which result would make you say: that mattered?",
+   "answer": "A/B/C",
+   "skip_if_confident": false,
+   "options": [
+    {
+     "key": "a",
+     "text": "Something I built is out in the world and people use it"
+    },
+    {
+     "key": "b",
+     "text": "A team or community that runs well and keeps going"
+    },
+    {
+     "key": "c",
+     "text": "A clear number reached: income, clients, growth"
+    },
+    {
+     "key": "d",
+     "text": "Specific people are better off because of me"
+    },
+    {
+     "key": "e",
+     "text": "I've become truly excellent at my craft"
+    }
+   ]
+  },
+  {
+   "id": "WD1",
+   "bank": "wealth_dynamics",
+   "say": "When a new project starts, which part do you naturally grab?",
+   "answer": "A/B/C",
+   "skip_if_confident": false,
+   "options": [
+    {
+     "key": "a",
+     "text": "Working out the plan, the numbers and the system"
+    },
+    {
+     "key": "b",
+     "text": "Getting the right people excited and on board"
+    },
+    {
+     "key": "c",
+     "text": "Coming up with the idea and the first version"
+    },
+    {
+     "key": "d",
+     "text": "Getting stuck in, sensing what's needed and starting the work"
+    }
+   ]
+  },
+  {
+   "id": "WD2",
+   "bank": "wealth_dynamics",
+   "say": "What do people most often thank you for?",
+   "answer": "A/B/C",
+   "skip_if_confident": false,
+   "options": [
+    {
+     "key": "a",
+     "text": "Connecting them with someone, or lifting their spirits"
+    },
+    {
+     "key": "b",
+     "text": "Being steady and reliable when things got busy"
+    },
+    {
+     "key": "c",
+     "text": "Spotting the detail everyone else missed"
+    },
+    {
+     "key": "d",
+     "text": "A fresh idea that got them unstuck"
+    }
+   ]
+  },
+  {
+   "id": "WD3",
+   "bank": "wealth_dynamics",
+   "say": "Which kind of day leaves you feeling most alive?",
+   "answer": "A/B/C",
+   "skip_if_confident": false,
+   "options": [
+    {
+     "key": "a",
+     "text": "A day full of conversations and people"
+    },
+    {
+     "key": "b",
+     "text": "Starting new things and seeing possibilities"
+    },
+    {
+     "key": "c",
+     "text": "Deep, quiet work on the details"
+    },
+    {
+     "key": "d",
+     "text": "Steady doing, with a good rhythm and things getting finished"
+    }
+   ]
+  },
+  {
+   "id": "WD4",
+   "bank": "wealth_dynamics",
+   "say": "When something goes wrong, what's your first move?",
+   "answer": "A/B/C",
+   "skip_if_confident": false,
+   "options": [
+    {
+     "key": "a",
+     "text": "Find the facts and fix the process"
+    },
+    {
+     "key": "b",
+     "text": "Stay calm, read the situation, and wait for the right moment"
+    },
+    {
+     "key": "c",
+     "text": "Look for a whole new way to do it"
+    },
+    {
+     "key": "d",
+     "text": "Pick up the phone and talk it through"
+    }
+   ]
+  },
+  {
+   "id": "WD5",
+   "bank": "wealth_dynamics",
+   "say": "Where do you create your best value, or make your best money?",
+   "answer": "A/B/C",
+   "skip_if_confident": false,
+   "options": [
+    {
+     "key": "a",
+     "text": "Being in the right place at the right time, and acting on it"
+    },
+    {
+     "key": "b",
+     "text": "Creating something new: a product, an idea, a piece of work"
+    },
+    {
+     "key": "c",
+     "text": "Through relationships, reputation and being out front"
+    },
+    {
+     "key": "d",
+     "text": "Owning and improving systems or assets over time"
+    }
+   ]
+  },
+  {
+   "id": "WD6",
+   "bank": "wealth_dynamics",
+   "say": "In a team, which role do you end up in?",
+   "answer": "A/B/C",
+   "skip_if_confident": false,
+   "options": [
+    {
+     "key": "a",
+     "text": "The one who makes sure it actually gets done, on time"
+    },
+    {
+     "key": "b",
+     "text": "The one who builds the process so it runs without them"
+    },
+    {
+     "key": "c",
+     "text": "The one with the ideas and the vision"
+    },
+    {
+     "key": "d",
+     "text": "The one who keeps everyone connected and motivated"
+    }
+   ]
+  },
+  {
+   "id": "WD7",
+   "bank": "wealth_dynamics",
+   "say": "What gets in your way most often?",
+   "answer": "A/B/C",
+   "skip_if_confident": false,
+   "options": [
+    {
+     "key": "a",
+     "text": "Getting pulled into too many conversations"
+    },
+    {
+     "key": "b",
+     "text": "Getting lost in the detail and missing the bigger picture"
+    },
+    {
+     "key": "c",
+     "text": "Waiting too long because the timing doesn't feel right"
+    },
+    {
+     "key": "d",
+     "text": "Starting more than I finish"
+    }
+   ]
+  },
+  {
+   "id": "WD8",
+   "bank": "wealth_dynamics",
+   "say": "How do you prefer to make a decision?",
+   "answer": "A/B/C",
+   "skip_if_confident": false,
+   "options": [
+    {
+     "key": "a",
+     "text": "Look at the data"
+    },
+    {
+     "key": "b",
+     "text": "Gut feel for what's possible"
+    },
+    {
+     "key": "c",
+     "text": "Feel out the timing and the situation first"
+    },
+    {
+     "key": "d",
+     "text": "Talk it through with people I trust"
+    }
+   ]
+  },
+  {
+   "id": "WD9",
+   "bank": "wealth_dynamics",
+   "say": "What do you notice first when you walk into a room?",
+   "answer": "A/B/C",
+   "skip_if_confident": false,
+   "options": [
+    {
+     "key": "a",
+     "text": "Who's there and how they're feeling"
+    },
+    {
+     "key": "b",
+     "text": "The mood and the pace of the room"
+    },
+    {
+     "key": "c",
+     "text": "What could be done differently here"
+    },
+    {
+     "key": "d",
+     "text": "What's out of place or not working"
+    }
+   ]
+  },
+  {
+   "id": "WD10",
+   "bank": "wealth_dynamics",
+   "say": "Which compliment lands best with you?",
+   "answer": "A/B/C",
+   "skip_if_confident": false,
+   "options": [
+    {
+     "key": "a",
+     "text": "Everyone loves working with you"
+    },
+    {
+     "key": "b",
+     "text": "Your work is precise and thorough"
+    },
+    {
+     "key": "c",
+     "text": "You're the one I can always count on"
+    },
+    {
+     "key": "d",
+     "text": "That's brilliant, I'd never have thought of that"
+    }
+   ]
+  },
+  {
+   "id": "WD11",
+   "bank": "wealth_dynamics",
+   "say": "If you had a free month to build something, you'd most likely...",
+   "answer": "A/B/C",
+   "skip_if_confident": false,
+   "options": [
+    {
+     "key": "a",
+     "text": "Set up a system or an investment that keeps paying off"
+    },
+    {
+     "key": "b",
+     "text": "Invent something that doesn't exist yet"
+    },
+    {
+     "key": "c",
+     "text": "Bring people together around a cause or an event"
+    },
+    {
+     "key": "d",
+     "text": "Help out somewhere hands-on and learn by doing"
+    }
+   ]
+  },
+  {
+   "id": "WD12",
+   "bank": "wealth_dynamics",
+   "say": "Which do you trust most?",
+   "answer": "A/B/C",
+   "skip_if_confident": false,
+   "options": [
+    {
+     "key": "a",
+     "text": "My numbers"
+    },
+    {
+     "key": "b",
+     "text": "My people"
+    },
+    {
+     "key": "c",
+     "text": "My senses and my timing"
+    },
+    {
+     "key": "d",
+     "text": "My imagination"
+    }
+   ]
   }
  ],
  "note_v1": "Kolbe and Working Genius are paid lenses with no proxy in v1; their banks stay in the repo but are excluded from the plan unless the person has bought the real instrument and enters its result."

@@ -16,7 +16,7 @@ async function main() {
   const { interviewNext, interviewAnswer, interviewSkip, interviewBack } = await import("./interview");
   type NextPayload = import("./interview").NextPayload;
   const { readState, updateState } = await import("./state");
-  const { nextItem, progress, isComplete, applyAnswer, PLAN, itemById } = await import("./engine");
+  const { nextItem, progress, isComplete, applyAnswer, PLAN, itemById, clarificationPrompt } = await import("./engine");
   const { scoreAll } = await import("./score");
   const { parseLocal, localModel } = await import("./parse-local");
 
@@ -33,6 +33,13 @@ async function main() {
     if (/^E[1-9][abc]$/.test(id)) return pick(no);
     if (/^E5d$/.test(id)) return pick(no); // reversed 5 item, if ever asked
     if (/^E[1-9]d$/.test(id)) return pick(mostly);
+    // Drucker learning: three remembered moments (two by doing, one by talking it through) and one that didn't stick (reading)
+    if (id === "DRL1") return "I just did it, tried and adjusted";
+    if (id === "DRL2") return "the fourth one";
+    if (id === "DRL3") return "f";
+    if (id === "DRL4") return "the first one";
+    if (/^DR[A-Z]?\d$/.test(id)) return "the first one";
+    if (/^WD\d+$/.test(id)) return ["a", "b", "c", "d"][Number(id.slice(2)) % 4 === 0 ? 1 : 0];
     if (/^D/.test(id)) return pick(mostly);
     if (/^I_/.test(id)) return pick(little);
     if (/^A\d$/.test(id)) return ["A3", "A7"].includes(id) ? pick(yes) : pick(no); // low anxiety (A3/A7 are reversed)
@@ -56,7 +63,7 @@ async function main() {
   console.log("\n1. start");
   let n = await interviewNext(P);
   ok("first item is the first enneagram item", () => { assert.equal(n.item?.id, "E5a"); assert.equal(n.item?.section, "enneagram"); assert.equal(n.item?.answer, "1-5"); });
-  ok("welcome and enneagram intros come once, personalised", () => { assert.match(n.intro ?? "", /^Hey Test persona\./); assert.match(n.intro ?? "", /Part two: what drives you/); });
+  ok("welcome and enneagram intros come once, personalised", () => { assert.match(n.intro ?? "", /^Hey Test persona\./); assert.match(n.intro ?? "", /Part one: what drives you/); });
   n = await interviewNext(P);
   ok("polling /next again repeats neither intro nor the agent turn", () => assert.equal(n.intro, undefined));
   let s = await readState(P);
@@ -66,7 +73,7 @@ async function main() {
     assert.ok(agent.every((t) => t.mode === "chat" && t.session_id === "local-chat"));
     assert.equal(s.status, "in_chat");
   });
-  ok("profile defaults: seven always-on lenses, no paid ones", () => { assert.deepEqual(s.profile.enabled_lenses, ["human_design", "gene_keys", "enneagram", "attachment", "bigfive", "chronotype", "values"]); assert.equal(s.profile.id, P); });
+  ok("profile defaults: nine always-on lenses, no paid ones", () => { assert.deepEqual(s.profile.enabled_lenses, ["human_design", "gene_keys", "enneagram", "attachment", "bigfive", "chronotype", "values", "drucker", "wealth_dynamics"]); assert.equal(s.profile.id, P); });
 
   // ---------- 2. parsing paths ----------
   console.log("\n2. parsing");
@@ -141,7 +148,7 @@ async function main() {
     for (const id of ["I_sp1", "I_sp2", "I_so1", "I_so2", "I_sx1", "I_sx2"]) assert.ok(askedEnn.has(id), `${id} asked`);
   });
   ok("the next section intro arrives with the first item of the new section, and only there", () => {
-    assert.equal(handoff?.item?.section, "attachment"); assert.match(handoff?.intro ?? "", /^Part three/);
+    assert.equal(handoff?.item?.section, "attachment"); assert.match(handoff?.intro ?? "", /^Part two/);
     assert.equal(n.item?.section, "attachment"); assert.equal(n.intro, undefined);
   });
 
@@ -161,9 +168,9 @@ async function main() {
   ok("interview completes: no next item, status complete, close line said once", () => {
     assert.equal(n.item, null); assert.equal(n.done, true); assert.equal(isComplete(s), true); assert.equal(s.status, "complete");
     assert.match(last.intro ?? "", /That's everything\./); assert.equal(last.done, true);
-    assert.deepEqual(s.interview.intros_shown, ["welcome", "enneagram", "attachment", "bigfive", "chronotype", "values", "close"]);
+    assert.deepEqual(s.interview.intros_shown, ["welcome", "enneagram", "attachment", "bigfive", "chronotype", "values", "drucker", "wealth_dynamics", "close"]);
   });
-  ok("section intros each came once, in plan order", () => assert.deepEqual(intros, ["bigfive", "chronotype", "values"]));
+  ok("section intros each came once, in plan order", () => assert.deepEqual(intros, ["bigfive", "chronotype", "values", "drucker", "wealth_dynamics"]));
   ok("checkpoints in the other sections behaved", () => {
     const asked = new Set(s.answers.map((x) => x.item_id));
     assert.ok(sc.attachment!.confidence >= 0.5, `attachment confidence ${sc.attachment!.confidence}`);
@@ -184,12 +191,16 @@ async function main() {
     assert.equal(sc.chronotype!.natural_wake, "06:00"); assert.equal(sc.chronotype!.natural_bed, "22:30");
     assert.ok(sc.values!.top.includes("self_direction") && sc.values!.top.includes("universalism"), sc.values!.top.join(","));
     assert.ok(sc.values!.bottom.includes("power"), sc.values!.bottom.join(","));
+    assert.equal(sc.drucker!.answered, 16); assert.equal(sc.drucker!.choices.learning_slow.value, "reading");
+    assert.deepEqual(sc.drucker!.learning, { value: "doing", text: "I just did it, tried and adjusted", count: 2, of: 3, moments: ["doing", "doing", "talking"], tie: false, slow: "reading" });
+    assert.equal(sc.drucker!.choices.learning.value, "doing"); assert.equal(sc.drucker!.choices.mirror.question, "values"); assert.equal(sc.drucker!.choices.result.question, "contribute");
+    assert.equal(sc.wealth_dynamics!.answered, 12); assert.ok(["Creator", "Star", "Supporter", "Deal Maker", "Trader", "Accumulator", "Lord", "Mechanic"].includes(sc.wealth_dynamics!.profile), sc.wealth_dynamics!.profile);
     assert.equal(sc.kolbe_proxy, null, "no Kolbe proxy"); assert.equal(sc.working_genius, null, "no Working Genius proxy");
   });
   const pr = progress(s);
   ok("progress: items lenses at 100%, birth lenses at 0 (no chart), overall counts add up", () => {
     for (const l of pr.lenses) if (l.from === "items") assert.equal(l.percent, 100, `${l.lens} ${l.percent}%`); else assert.equal(l.percent, 0);
-    assert.equal(pr.lens_count, 7); assert.equal(pr.done, true);
+    assert.equal(pr.lens_count, 9); assert.equal(pr.done, true);
     assert.equal(pr.overall.answered, s.answers.length); assert.equal(pr.overall.skipped, 1); assert.equal(pr.overall.total, s.answers.length + 1); assert.equal(pr.overall.percent, 100);
   });
   ok("every exchange is in the one thread", () => {
@@ -223,6 +234,27 @@ async function main() {
     assert.ok(existsSync(path.join(scratch, "profiles", P, "state.json")) && existsSync(path.join(scratch, "profiles", F, "state.json")));
     assert.equal(existsSync(path.join(scratch, "state.json")), false);
   });
+  // Someone who finished before Drucker's five questions: an old self-guessed DR2 answer, none of the new items, report written.
+  const NEW_DR = /^DR[LVBC]\d$/;
+  await updateState((st) => {
+    st.answers = [...s.answers.filter((x) => !NEW_DR.test(x.item_id)), { item_id: "DR2", section: "drucker", value: "b", raw: "b", at: new Date().toISOString() }];
+    st.interview.skips = { ...s.interview.skips }; st.interview.intros_shown = [...s.interview.intros_shown];
+    st.status = "reported";
+  }, "returning");
+  const rt = await interviewNext("returning");
+  const rst = await readState("returning");
+  const rs = scoreAll(rst);
+  ok("a finished profile gets the new Drucker questions, starting with the first learning moment", () => {
+    assert.equal(rt.item?.id, "DRL1"); assert.equal(rt.item?.options?.length, 6); assert.equal(rt.item?.of, 16);
+  });
+  ok("the retired self-guessed DR2 answer is neither scored nor counted", () => {
+    assert.equal(rs.drucker!.answered, 7); assert.equal(rs.answered.drucker, 7); assert.equal(rs.drucker!.learning, null); assert.equal(rs.drucker!.choices.learning, undefined);
+  });
+  ok("six-option items take E and F by letter and position, and the clarification lists every letter", () => {
+    const r1 = applyAnswer(rst, "DRL1", "option e"); assert.equal(r1.ok, true); assert.equal((r1 as { parsed: { value: string } }).parsed.value, "e");
+    const r2 = applyAnswer(rst, "DRL1", "the sixth one"); assert.equal(r2.ok, true); assert.equal((r2 as { parsed: { value: string } }).parsed.value, "f");
+    assert.equal(clarificationPrompt(itemById("DRL1")!), "Which is closest: A, B, C, D, E, or F?");
+  });
   await updateState((st) => { st.profile.enabled_lenses = ["human_design", "gene_keys", "chronotype"]; }, "chrono-only");
   const c1 = await interviewNext("chrono-only");
   ok("a profile with only chronotype enabled starts at K_wake and never sees other banks", () => { assert.equal(c1.item?.id, "K_wake"); assert.equal(c1.progress.lens_count, 3); });
@@ -232,9 +264,12 @@ async function main() {
     const r = applyAnswer(cs, "K_wake", "half past six"); assert.equal(r.ok, true); assert.equal((r as { parsed: { value: number } }).parsed.value, 6.5);
     const b = applyAnswer(cs, "K_bed", "eleven"); assert.equal(b.ok, true); assert.equal((b as { parsed: { value: number } }).parsed.value, 23);
   });
-  ok("the plan's A/B/C and energy kinds are supported even though v0.2 has none", () => {
+  ok("A/B/C items are the Drucker and Wealth Dynamics choices, each with its own options; no energy items in the plan", () => {
     assert.equal(itemById("E5a")?.answer, "1-5");
-    assert.equal(PLAN.items.some((i) => i.answer === "A/B/C" || i.answer === "energy"), false);
+    const abc = PLAN.items.filter((i) => i.answer === "A/B/C");
+    assert.deepEqual(abc.map((i) => i.bank), [...Array(16).fill("drucker"), ...Array(12).fill("wealth_dynamics")]);
+    assert.ok(abc.every((i) => (i.options?.length ?? 0) >= 3));
+    assert.equal(PLAN.items.some((i) => i.answer === "energy"), false);
   });
 
   // ---------- 7. optional: the local model on real story answers ----------

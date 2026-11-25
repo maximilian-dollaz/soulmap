@@ -20,6 +20,8 @@ export type Live = {
   bigfive?: { scores: Record<string, number>; levels?: Record<string, string>; confidence: number } | null;
   chronotype?: { label: string; score: number; peak_window: string; natural_wake?: string; natural_bed?: string; confidence: number } | null;
   values?: { centered: Record<string, number>; top: string[]; confidence: number } | null;
+  drucker?: { choices: Record<string, { value: string; text: string }>; learning?: { value: string; text: string; count: number; of: number; tie: boolean } | null } | null;
+  wealth_dynamics?: { profile: string; primary: string; secondary: string; energies: Record<string, number> } | null;
   working_genius?: { ranking: { genius: string; name?: string; band: string; energy: number }[]; confidence: number } | null;
   enabled?: string[]; // lenses drawn; paid lenses absent = not drawn at all
   approx?: boolean; // birth time not sure: birth lenses draw dashed
@@ -35,7 +37,7 @@ export type Live = {
   agentTalking?: boolean;
 };
 
-export type MapRegion = "human_design" | "gene_keys" | "enneagram" | "attachment" | "kolbe" | "working_genius" | "bigfive" | "values" | "chronotype";
+export type MapRegion = "human_design" | "gene_keys" | "enneagram" | "attachment" | "kolbe" | "working_genius" | "bigfive" | "values" | "chronotype" | "drucker" | "wealth_dynamics";
 
 const CENTERS: { id: string; x: number; y: number; shape: "tri" | "sq" | "dia" | "tri-down" }[] = [
   { id: "Head", x: 0, y: -150, shape: "tri" },

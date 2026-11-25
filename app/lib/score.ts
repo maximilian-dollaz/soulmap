@@ -1,6 +1,6 @@
 import type { SoulState } from "./state";
 import type { Live } from "@/components/SoulMap";
-import { score_enneagram, score_attachment, score_kolbe_proxy, score_bigfive, score_working_genius, score_chronotype, score_values, type Answers, type EnneagramBank, type AttachmentBank, type KolbeBank } from "./questions/scoring";
+import { score_enneagram, score_attachment, score_kolbe_proxy, score_bigfive, score_working_genius, score_chronotype, score_values, score_drucker, score_wealth_dynamics, type DruckerBank, type WealthBank, type Answers, type EnneagramBank, type AttachmentBank, type KolbeBank } from "./questions/scoring";
 import bigfiveBank from "./questions/bigfive.json";
 import wgBank from "./questions/working_genius.json";
 import chronoBank from "./questions/chronotype.json";
@@ -8,6 +8,8 @@ import valuesBank from "./questions/values.json";
 import enneagramBank from "./questions/enneagram.json";
 import attachmentBank from "./questions/attachment.json";
 import kolbeBank from "./questions/kolbe_proxy.json";
+import druckerBank from "./questions/drucker.json";
+import wealthBank from "./questions/wealth_dynamics.json";
 
 const EB = enneagramBank as unknown as EnneagramBank;
 const AB = attachmentBank as unknown as AttachmentBank;
@@ -22,12 +24,18 @@ export function normalizeSection(s: string): SoulState["answers"][number]["secti
   if (k.startsWith("work")) return "working_genius";
   if (k.startsWith("chrono")) return "chronotype";
   if (k.startsWith("val")) return "values";
+  if (k.startsWith("druck")) return "drucker";
+  if (k.startsWith("wealth")) return "wealth_dynamics";
   return "open";
 }
 
+/** Item ids each bank still asks. An answer to a retired item (Drucker's old self-guessed DR2) stays in the state file but is not scored or counted. */
+const SCORED_IDS: Record<string, Set<string>> = { drucker: new Set((druckerBank as { items: { id: string }[] }).items.map((i) => i.id)) };
+
 function answersFor(s: SoulState, section: string): Answers {
   const out: Answers = {};
-  for (const a of s.answers) if (a.section === section) out[a.item_id] = a.value;
+  const known = SCORED_IDS[section];
+  for (const a of s.answers) if (a.section === section && (!known || known.has(a.item_id))) out[a.item_id] = a.value;
   return out;
 }
 
@@ -35,7 +43,7 @@ export function scoreAll(s: SoulState) {
   const e = answersFor(s, "enneagram");
   const a = answersFor(s, "attachment");
   const k = answersFor(s, "kolbe");
-  const bf = answersFor(s, "bigfive"), wg = answersFor(s, "working_genius"), ch = answersFor(s, "chronotype"), va = answersFor(s, "values");
+  const bf = answersFor(s, "bigfive"), wg = answersFor(s, "working_genius"), ch = answersFor(s, "chronotype"), va = answersFor(s, "values"), dr = answersFor(s, "drucker"), wd = answersFor(s, "wealth_dynamics");
   const n = (o: Answers) => Object.keys(o).length;
   const BF = bigfiveBank as never, WG = wgBank as never, CH = chronoBank as never, VA = valuesBank as never;
   return {
@@ -46,8 +54,10 @@ export function scoreAll(s: SoulState) {
     working_genius: n(wg) ? score_working_genius(wg, WG) : null,
     chronotype: n(ch) ? score_chronotype(ch, CH) : null,
     values: n(va) ? score_values(va, VA) : null,
-    answered: { enneagram: n(e), attachment: n(a), kolbe: n(k), bigfive: n(bf), working_genius: n(wg), chronotype: n(ch), values: n(va) },
-    totals: { enneagram: EB.items.length, attachment: AB.items.length, kolbe: KB.items.length, bigfive: (bigfiveBank as { items: unknown[] }).items.length, working_genius: (wgBank as { items: unknown[] }).items.length, chronotype: (chronoBank as { items: unknown[] }).items.length, values: (valuesBank as { items: unknown[] }).items.length },
+    drucker: n(dr) ? score_drucker(dr, druckerBank as unknown as DruckerBank) : null,
+    wealth_dynamics: n(wd) ? score_wealth_dynamics(wd, wealthBank as unknown as WealthBank) : null,
+    answered: { enneagram: n(e), attachment: n(a), kolbe: n(k), bigfive: n(bf), working_genius: n(wg), chronotype: n(ch), values: n(va), drucker: n(dr), wealth_dynamics: n(wd) },
+    totals: { enneagram: EB.items.length, attachment: AB.items.length, kolbe: KB.items.length, bigfive: (bigfiveBank as { items: unknown[] }).items.length, working_genius: (wgBank as { items: unknown[] }).items.length, chronotype: (chronoBank as { items: unknown[] }).items.length, values: (valuesBank as { items: unknown[] }).items.length, drucker: (druckerBank as { items: unknown[] }).items.length, wealth_dynamics: (wealthBank as { items: unknown[] }).items.length },
     total_items: EB.items.length + AB.items.length + KB.items.length + (bigfiveBank as { items: unknown[] }).items.length + (wgBank as { items: unknown[] }).items.length + (chronoBank as { items: unknown[] }).items.length + (valuesBank as { items: unknown[] }).items.length,
   };
 }

@@ -34,6 +34,8 @@ export async function GET(req: Request) {
     bigfive: bf ? { scores: bf.scores, levels: bf.levels, confidence: bf.confidence } : null,
     chronotype: ch ? { label: ch.label, score: ch.score, peak_window: ch.peak_window, natural_wake: ch.natural_wake, natural_bed: ch.natural_bed, confidence: ch.confidence } : null,
     values: va ? { centered: va.centered, top: va.top, confidence: va.confidence } : null,
+    drucker: sc.drucker ? { choices: sc.drucker.choices, learning: sc.drucker.learning } : null,
+    wealth_dynamics: sc.wealth_dynamics ? { profile: sc.wealth_dynamics.profile, primary: sc.wealth_dynamics.primary, secondary: sc.wealth_dynamics.secondary, energies: sc.wealth_dynamics.energies } : null,
     working_genius: wg ? { ranking: wg.ranking, confidence: wg.confidence } : null,
     enabled: s.profile.enabled_lenses,
     approx: !!s.chart && (s.birth?.time_confidence === "unknown" || s.birth?.time_confidence === "approx" || s.profile.birth_time_known === false),
